@@ -136,16 +136,22 @@
     <ClCompile Include="..\glad.c" />
     <ClCompile Include="Game\World\ChunkHandler.cpp" />
     <ClCompile Include="Game\World\Chunk.cpp" />
+    <ClCompile Include="Core\OpenGL\IndexBuffer.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Core\OpenGL\Shader.cpp" />
-    <ClCompile Include="Core\imageLoader\stb_image.cpp" />
+    <ClCompile Include="Core\OpenGL\imageLoader\stb_image.cpp" />
+    <ClCompile Include="Core\OpenGL\VertexArray.cpp" />
+    <ClCompile Include="Core\OpenGL\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\World\ChunkHandler.h" />
     <ClInclude Include="Game\World\Chunk.h" />
     <ClInclude Include="Core\OpenGL\Camera.hpp" />
     <ClInclude Include="Core\OpenGL\Shader.h" />
-    <ClInclude Include="Core\imageLoader\stb_image.h" />
+    <ClInclude Include="Core\OpenGL\imageLoader\stb_image.h" />
+    <ClInclude Include="Core\OpenGL\VertexArray.h" />
+    <ClInclude Include="Core\OpenGL\VertexBuffer.h" />
+    <ClInclude Include="Core\OpenGL\IndexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\shader.fs" />

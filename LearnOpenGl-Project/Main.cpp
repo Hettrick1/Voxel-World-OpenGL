@@ -2,7 +2,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Core/imageLoader/stb_image.h"
+#include "Core/OpenGL/imageLoader/stb_image.h"
 #include "Core/OpenGL/Shader.h"
 #include "Core/OpenGL/Camera.hpp"
 
