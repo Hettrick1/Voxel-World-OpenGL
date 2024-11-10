@@ -2,16 +2,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include "imageLoader/stb_image.h"
-#include "Shader.h"
-#include "Camera.hpp"
-#include "Cube.h"
+#include "Core/imageLoader/stb_image.h"
+#include "Core/OpenGL/Shader.h"
+#include "Core/OpenGL/Camera.hpp"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
-#include "Chunk.h"
 
 #include <iostream>
 
@@ -51,10 +48,6 @@ int main() {
         return -1;
     }  
 
-    Chunk* chunk = new Chunk(camera, glm::vec3(0, 0, 0));
-    Chunk* chunk1 = new Chunk(camera, glm::vec3(1, 0, 0));
-    Chunk* chunk2 = new Chunk(camera, glm::vec3(0, 0, 1));
-
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
     glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -74,18 +67,12 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        chunk->DrawChunk();
-        chunk1->DrawChunk();
-        chunk2->DrawChunk();
         /*glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
 
         //swap buffers
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-    chunk->Unload();
-    chunk1->Unload();
-    chunk2->Unload();
     glfwTerminate();
     return 0;
 }
