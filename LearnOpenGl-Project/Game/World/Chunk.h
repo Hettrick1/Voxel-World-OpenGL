@@ -15,17 +15,18 @@
 class Chunk
 {
 private:
-	const int sizeX = 16;
-	const int sizeY = 16;
-	const int sizeZ = 256;
-	GLuint* chunk[16][16][256] = { nullptr };
-	Camera* camera;
-	Shader* shader;
-	glm::vec3 position;
-	std::vector<float> allVertices = { nullptr };
+	const int SIZE_X = 16;
+	const int SIZE_Y = 16;
+	const int SIZE_Z = 256;
+	GLuint* mChunk[16][16][256] = { nullptr };
+	Camera* mCamera;
+	Shader* mShader;
+	glm::vec3 mPosition;
+	std::vector<float> mAllVertices;
 public:
 	Chunk(Camera* cam, glm::vec3 pos);
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
+	Chunk* GetChunkWithPosition(int x, int y, int z);
 };
 

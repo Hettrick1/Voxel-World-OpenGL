@@ -4,6 +4,7 @@
 
 #include "Core/OpenGL/Shader.h"
 #include "Core/OpenGL/Camera.hpp"
+#include "Game/World/ChunkHandler.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -52,6 +53,8 @@ int main() {
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
+
+    ChunkHandler* chunkHandler = new ChunkHandler(5, camera);
 
     while (!glfwWindowShouldClose(window)) {
 
