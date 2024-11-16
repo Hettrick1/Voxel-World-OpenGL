@@ -20,6 +20,9 @@ void ChunkHandler::GenerateAllChunks()
 			std::cout << mActiveChunks.size() << std::endl;
 		}
 	}
+	for (int i = 0; i < mActiveChunks.size(); i++) {
+		mActiveChunks[i]->ConstructMesh();
+	}
 }
 
 void ChunkHandler::UpdateChunks()
@@ -28,4 +31,7 @@ void ChunkHandler::UpdateChunks()
 
 void ChunkHandler::DrawChunks()
 {
+	for (int i = 0; i < mActiveChunks.size(); i++) {
+		mActiveChunks[i]->DrawChunk();
+	}
 }

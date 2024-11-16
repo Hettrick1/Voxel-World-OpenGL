@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "OpenGL/imageLoader/stb_image.h"
+
 #include <iostream>
 #include <vector>
 
@@ -27,5 +29,7 @@ private:
 	std::vector<Chunk*> mOldChunks;
 	int mRenderDistance;
 	Camera* mCamera;
+	Shader* shader;
+	GLuint texture1, texture2;
 };
 

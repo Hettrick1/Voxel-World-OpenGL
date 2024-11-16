@@ -71,12 +71,18 @@
     <ClInclude Include="Core\OpenGL\IndexBuffer.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="Core\Utils\Vertex.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Utils\Defs.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="Core\Shaders\shader.fs">
+    <None Include="Core\OpenGL\Shaders\shader.fs">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="Core\Shaders\shader.vs">
+    <None Include="Core\OpenGL\Shaders\shader.vs">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>

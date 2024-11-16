@@ -145,6 +145,8 @@
     <ClCompile Include="Core\OpenGL\VertexBuffer.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\Utils\Defs.h" />
+    <ClInclude Include="Core\Utils\Vertex.h" />
     <ClInclude Include="Game\World\ChunkHandler.h" />
     <ClInclude Include="Game\World\Chunk.h" />
     <ClInclude Include="Core\OpenGL\Camera.hpp" />
@@ -155,8 +157,8 @@
     <ClInclude Include="Core\OpenGL\IndexBuffer.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="Core\Shaders\shader.fs" />
-    <None Include="Core\Shaders\shader.vs" />
+    <None Include="Core\OpenGL\Shaders\shader.fs" />
+    <None Include="Core\OpenGL\Shaders\shader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
