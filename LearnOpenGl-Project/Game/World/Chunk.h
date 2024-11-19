@@ -2,8 +2,15 @@
 
 #include <glad/glad.h>
 
+#include "Utils/Defs.h"
+#include "Utils/Vertex.h"
+
 #include "OpenGL/Shader.h"
 #include "OpenGL/Camera.hpp"
+
+#include "OpenGL/VertexArray.h"
+#include "OpenGL/VertexBuffer.h"
+#include "OpenGL/IndexBuffer.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -15,14 +22,11 @@
 class Chunk
 {
 private:
-	const int SIZE_X = 16;
-	const int SIZE_Y = 16;
-	const int SIZE_Z = 256;
 	GLuint* mChunk[16][16][256] = { nullptr };
 	Camera* mCamera;
 	Shader* mShader;
 	glm::vec3 mPosition;
-	std::vector<float> mAllVertices;
+	std::vector<Vertex> mAllVertices;
 public:
 	Chunk(Camera* cam, glm::vec3 pos);
 	~Chunk();
