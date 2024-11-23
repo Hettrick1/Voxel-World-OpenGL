@@ -48,7 +48,7 @@ int main() {
         return -1;
     }  
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
     glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);

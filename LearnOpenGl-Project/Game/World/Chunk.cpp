@@ -1,6 +1,6 @@
 #include "Chunk.h"
 
-Chunk::Chunk(Camera* cam, glm::vec3 pos)
+Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
@@ -13,8 +13,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos)
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-            for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-                mChunk[x][z][y] = nullptr; // Par exemple, initialisation à nullptr
+            for (int y = 0; y < 12; y++) {
+                mChunk[x][z][y] = new GLuint(1); // Par exemple, initialisation à nullptr
                 count++;
             }
         }
@@ -24,7 +24,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos)
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int z = 0; z < CHUNK_SIZE_Z; z++) {
             for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-                CheckForNeighbors(x, y, z);
+                CheckForNeighbors(x, z, y);
             }
         }
     }
@@ -36,7 +36,7 @@ Chunk::~Chunk()
 
 void Chunk::CheckForNeighbors(int x, int y, int z)
 {
-    if (mChunk[x][z][y] == nullptr) return;
+    if (mChunk[x][y][z] == nullptr) return;
 
     glm::ivec3 directions[6] = {
         {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
@@ -49,41 +49,72 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
         int nx = neighborPos.x, ny = neighborPos.y, nz = neighborPos.z;
 
         // Vérifier les limites du chunk
-        if (nx >= 0 && nx < 16 && ny >= 0 && ny < 256 && nz >= 0 && nz < 16) {
+        if (nx >= 0 && nx < CHUNK_SIZE_X && ny >= 0 && ny < CHUNK_SIZE_Y && nz >= 0 && nz < CHUNK_SIZE_Z) {
             if (mChunk[nx][nz][ny] == nullptr) {
-                if (directions[i] == glm::ivec3(1, 0, 0)) {  // Face droite
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + 1),
-                                                          static_cast<uint8_t>(y),
-                                                          static_cast<uint8_t>(z)} });
-                }
-                else if (directions[i] == glm::ivec3(-1, 0, 0)) {  // Face gauche
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x - 1),
-                                                          static_cast<uint8_t>(y),
-                                                          static_cast<uint8_t>(z)} });
-                }
-                else if (directions[i] == glm::ivec3(0, 1, 0)) {  // Face dessus
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x),
-                                                          static_cast<uint8_t>(y + 1),
-                                                          static_cast<uint8_t>(z)} });
-                }
-                else if (directions[i] == glm::ivec3(0, -1, 0)) {  // Face dessous
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x),
-                                                          static_cast<uint8_t>(y - 1),
-                                                          static_cast<uint8_t>(z)} });
-                }
-                else if (directions[i] == glm::ivec3(0, 0, 1)) {  // Face avant
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x),
-                                                          static_cast<uint8_t>(y),
-                                                          static_cast<uint8_t>(z + 1)} });
-                }
-                else if (directions[i] == glm::ivec3(0, 0, -1)) {  // Face arrière
-                    mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x),
-                                                          static_cast<uint8_t>(y),
-                                                          static_cast<uint8_t>(z - 1)} });
-                }
+                // Ajouter les 6 sommets nécessaires pour dessiner une face
+                AddFace(x, y, z, directions[i]);
             }
         }
     }
+}
+
+void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
+{
+    static const glm::vec3 vertexOffsets[6][4] = {
+        // Face droite (+X)
+        {{1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}},
+        // Face gauche (-X)
+        {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}},
+        // Face haut (+Y)
+        {{0, 1, 0}, {0, 1, 1}, {1, 1, 1}, {1, 1, 0}},
+        // Face bas (-Y)
+        {{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}},
+        // Face avant (+Z)
+        {{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}},
+        // Face arrière (-Z)
+        {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
+    };
+
+    int faceIndex = -1;
+    if (direction == glm::ivec3(1, 0, 0)) faceIndex = 0;   // Droite
+    if (direction == glm::ivec3(-1, 0, 0)) faceIndex = 1;  // Gauche
+    if (direction == glm::ivec3(0, 1, 0)) faceIndex = 2;   // Haut
+    if (direction == glm::ivec3(0, -1, 0)) faceIndex = 3;  // Bas
+    if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Avant
+    if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Arrière
+
+    if (faceIndex >= 0) {
+        const glm::vec3* offsets = vertexOffsets[faceIndex];
+
+        // Ajouter les 6 sommets
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+                                             static_cast<uint8_t>(y + offsets[0].y),
+                                             static_cast<uint8_t>(z + offsets[0].z)} });
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
+                                             static_cast<uint8_t>(y + offsets[1].y),
+                                             static_cast<uint8_t>(z + offsets[1].z)} });
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+                                             static_cast<uint8_t>(y + offsets[2].y),
+                                             static_cast<uint8_t>(z + offsets[2].z)} });
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+                                             static_cast<uint8_t>(y + offsets[0].y),
+                                             static_cast<uint8_t>(z + offsets[0].z)} });
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+                                             static_cast<uint8_t>(y + offsets[2].y),
+                                             static_cast<uint8_t>(z + offsets[2].z)} });
+        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
+                                             static_cast<uint8_t>(y + offsets[3].y),
+                                             static_cast<uint8_t>(z + offsets[3].z)} });
+    }
+    // Configurer les attributs de sommet pour `Vertex`
+    vao.Bind();
+    // Remplir le buffer avec les données des sommets 
+    vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
+    vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    vao.Unbind();
+
+    std::cout << "Nombre de sommets : " << mAllVertices.size() << std::endl;
+    std::cout << "Taille des données : " << mAllVertices.size() * sizeof(Vertex) << " octets" << std::endl;
 }
 
 Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
@@ -96,19 +127,8 @@ Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
 
 void Chunk::Draw()
 {
-    // Crée et configure le VAO et le VBO si nécessaire
-    static VertexArray vao;
-    static VertexBuffer vbo(GL_ARRAY_BUFFER);
-
+    std::cout << mAllVertices[0].position.x;
     if (mAllVertices.size() > 0) {
-        // Remplir le buffer avec les données des sommets 
-        vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
-
-        // Configurer les attributs de sommet pour `Vertex`
-        vao.Bind();
-        vbo.VertexAttribIPointer(0, 3, GL_UNSIGNED_BYTE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-        vao.Unbind();
-
         // Charger le shader et transmettre les matrices
         mShader->Use();
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);

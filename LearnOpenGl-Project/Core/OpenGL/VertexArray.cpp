@@ -4,7 +4,6 @@ VertexArray::VertexArray()
 {
 	this->array_id = 0;
 	glGenVertexArrays(1, &(this->array_id));
-	this->Bind();
 }
 
 VertexArray::~VertexArray()

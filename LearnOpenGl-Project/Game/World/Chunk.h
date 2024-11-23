@@ -27,11 +27,14 @@ private:
 	Shader* mShader;
 	glm::vec3 mPosition;
 	std::vector<Vertex> mAllVertices;
+	VertexArray vao;
+	VertexBuffer vbo;
 public:
 	Chunk(Camera* cam, glm::vec3 pos);
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
 	Chunk* GetChunkWithPosition(int x, int y, int z);
 	void Draw();
+	void AddFace(int x, int y, int z, glm::ivec3 direction);
 };
 
