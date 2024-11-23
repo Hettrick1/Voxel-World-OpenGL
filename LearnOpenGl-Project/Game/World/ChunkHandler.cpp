@@ -28,4 +28,7 @@ void ChunkHandler::UpdateChunks()
 
 void ChunkHandler::DrawChunks()
 {
+	for (int i = 0; i < mActiveChunks.size(); i++) {
+		mActiveChunks[i]->Draw();
+	}
 }

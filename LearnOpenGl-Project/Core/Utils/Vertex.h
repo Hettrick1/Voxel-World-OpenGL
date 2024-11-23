@@ -34,5 +34,5 @@ struct i16Vec2
 struct Vertex
 {
 	i8Vec3 position;
-	i16Vec2 texture_coords;
+	//i16Vec2 texture_coords;
 };

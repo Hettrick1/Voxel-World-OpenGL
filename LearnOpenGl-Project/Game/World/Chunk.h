@@ -32,5 +32,6 @@ public:
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
 	Chunk* GetChunkWithPosition(int x, int y, int z);
+	void Draw();
 };
 
