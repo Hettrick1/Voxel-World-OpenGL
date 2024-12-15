@@ -22,7 +22,7 @@
 class Chunk
 {
 private:
-	GLuint* mChunk[16][16][256] = { nullptr };
+	GLuint* mChunk[16][16][255] = { nullptr };
 	Camera* mCamera;
 	Shader* mShader;
 	glm::vec3 mPosition;

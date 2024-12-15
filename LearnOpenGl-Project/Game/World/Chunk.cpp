@@ -50,10 +50,13 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
 
         // Vérifier les limites du chunk
         if (nx >= 0 && nx < CHUNK_SIZE_X && ny >= 0 && ny < CHUNK_SIZE_Y && nz >= 0 && nz < CHUNK_SIZE_Z) {
-            if (mChunk[nx][nz][ny] == nullptr) {
+            if (mChunk[nx][ny][nz] == nullptr) {
                 // Ajouter les 6 sommets nécessaires pour dessiner une face
                 AddFace(x, y, z, directions[i]);
             }
+        }
+        else if (x == 0 || x == CHUNK_SIZE_X || y == 0 || y == CHUNK_SIZE_Y || z == 0 || z == CHUNK_SIZE_Z) {
+            AddFace(x, y, z, directions[i]);
         }
     }
 }
@@ -112,9 +115,6 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     vao.Unbind();
-
-    std::cout << "Nombre de sommets : " << mAllVertices.size() << std::endl;
-    std::cout << "Taille des données : " << mAllVertices.size() * sizeof(Vertex) << " octets" << std::endl;
 }
 
 Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
@@ -127,7 +127,6 @@ Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
 
 void Chunk::Draw()
 {
-    std::cout << mAllVertices[0].position.x;
     if (mAllVertices.size() > 0) {
         // Charger le shader et transmettre les matrices
         mShader->Use();

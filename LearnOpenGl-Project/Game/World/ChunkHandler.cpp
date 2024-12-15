@@ -17,6 +17,7 @@ void ChunkHandler::GenerateAllChunks()
 	for (int i = -mRenderDistance; i < mRenderDistance; i++) {
 		for (int j = -mRenderDistance; j < mRenderDistance; j++) {
 			mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
+			std::cout << "{ " << i << "," << j << " }" << std::endl;
 			std::cout << mActiveChunks.size() << std::endl;
 		}
 	}
