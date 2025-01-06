@@ -4,8 +4,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
-    mPosition.y = 0;
-    mPosition.z = pos.z * CHUNK_SIZE_Z;
+    mPosition.y = pos.z * CHUNK_SIZE_Z;
+    mPosition.z = pos.y * 16;
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
@@ -40,8 +40,8 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
 
     glm::ivec3 directions[6] = {
         {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
-        {0, 1, 0}, {0, -1, 0}, // Haut, Bas
-        {0, 0, 1}, {0, 0, -1}  // Avant, Arrière
+        {0, 1, 0}, {0, -1, 0},  // Avant, Arrière
+        {0, 0, 1}, {0, 0, -1}, // Haut, Bas
     };
 
     for (int i = 0; i < 6; i++) {
@@ -55,7 +55,7 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
                 AddFace(x, y, z, directions[i]);
             }
         }
-        else if (x == 0 || x == CHUNK_SIZE_X || y == 0 || y == CHUNK_SIZE_Y || z == 0 || z == CHUNK_SIZE_Z) {
+        else if (x == 0 || x == 15|| y == 0 || y == 15 || z == 0 || z == 11) {
             AddFace(x, y, z, directions[i]);
         }
     }
@@ -68,13 +68,13 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         {{1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}},
         // Face gauche (-X)
         {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}},
-        // Face haut (+Y)
+        // Face haut (+Z)
         {{0, 1, 0}, {0, 1, 1}, {1, 1, 1}, {1, 1, 0}},
-        // Face bas (-Y)
+        // Face bas (-Z)
         {{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}},
-        // Face avant (+Z)
+        // Face avant (+Y)
         {{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}},
-        // Face arrière (-Z)
+        // Face arrière (-Y)
         {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
     };
 
@@ -132,7 +132,7 @@ void Chunk::Draw()
         mShader->Use();
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);
         glm::mat4 view = mCamera->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 400.0f);
         glm::mat4 mvp = projection * view * model;
 
         mShader->SetMat4("u_MVP", mvp);
