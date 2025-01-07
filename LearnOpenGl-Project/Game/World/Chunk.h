@@ -36,5 +36,6 @@ public:
 	Chunk* GetChunkWithPosition(int x, int y, int z);
 	void Draw();
 	void AddFace(int x, int y, int z, glm::ivec3 direction);
+	glm::vec3 GetPosition();
 };
 

@@ -117,6 +117,11 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
     vao.Unbind();
 }
 
+glm::vec3 Chunk::GetPosition()
+{
+    return mPosition;
+}
+
 Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
 {
 	if (x == mPosition.x / CHUNK_SIZE_X && y == 0 && z == mPosition.z / CHUNK_SIZE_Z) {
