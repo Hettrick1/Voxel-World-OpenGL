@@ -130,10 +130,10 @@ void Chunk::Draw()
     if (mAllVertices.size() > 0) {
         // Charger le shader et transmettre les matrices
         mShader->Use();
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);
-        glm::mat4 view = mCamera->GetViewMatrix();
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 400.0f);
-        glm::mat4 mvp = projection * view * model;
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
+        glm::mat4 view = mCamera->GetViewMatrix(); 
+        glm::mat4 projection = glm::perspective(glm::radians(45.0f), 4.0f / 3.0f, 0.1f, 400.0f); 
+        glm::mat4 mvp = projection * view * model; 
 
         mShader->SetMat4("u_MVP", mvp);
         // Dessiner

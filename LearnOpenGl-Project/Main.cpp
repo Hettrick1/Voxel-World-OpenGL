@@ -17,13 +17,13 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-const unsigned int SCR_WIDTH = 800;
-const unsigned int SCR_HEIGHT = 600;
+const unsigned int SCR_WIDTH = 960;
+const unsigned int SCR_HEIGHT = 540;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
 float lastX = SCR_WIDTH / 2.0f;
 float lastY = SCR_HEIGHT / 2.0f;
 bool firstMouse = true;
@@ -124,5 +124,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
+    glfwGetWindowSize(window, &width, &height);
+    glfwSetWindowAspectRatio(window, width, height);
     glViewport(0, 0, width, height);
 }
