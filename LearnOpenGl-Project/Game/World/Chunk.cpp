@@ -4,17 +4,17 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
-    mPosition.y = pos.z * CHUNK_SIZE_Z;
-    mPosition.z = pos.y * 16;
+    mPosition.y = pos.y * CHUNK_SIZE_Y;
+    mPosition.z = 0;
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
     // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
-        for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-            for (int y = 0; y < 12; y++) {
-                mChunk[x][z][y] = new GLuint(1); // Par exemple, initialisation à nullptr
+        for (int y = 0; y < CHUNK_SIZE_Y; y++) {
+            for (int z = 0; z < 12; z++) {
+                mChunk[x][y][z] = new GLuint(1); // Par exemple, initialisation à nullptr
                 count++;
             }
         }
@@ -22,9 +22,9 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
 
     // Calculer les faces visibles et les stocker dans mAllVertices
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
-        for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-            for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-                CheckForNeighbors(x, z, y);
+        for (int y = 0; y < CHUNK_SIZE_Y; y++) {
+            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                CheckForNeighbors(x, y, z);
             }
         }
     }
@@ -55,7 +55,7 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
                 AddFace(x, y, z, directions[i]);
             }
         }
-        else if (x == 0 || x == 15|| y == 0 || y == 15 || z == 0 || z == 11) {
+        else if (x == 0 || x == CHUNK_SIZE_X-1|| y == 0 || y == CHUNK_SIZE_Y-1 || z == 0 || z == CHUNK_SIZE_Z-1) {
             AddFace(x, y, z, directions[i]);
         }
     }
@@ -136,7 +136,6 @@ void Chunk::Draw()
         glm::mat4 mvp = projection * view * model;
 
         mShader->SetMat4("u_MVP", mvp);
-
         // Dessiner
         vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, mAllVertices.size());
