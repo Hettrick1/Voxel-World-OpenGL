@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -38,6 +39,8 @@ public:
     float MouseSensitivity;
     float Zoom;
 
+    float sizeX = 4.0, sizeY = 3.0;
+
     // constructor with vectors
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 0.0f, 1.0f), float yaw = YAW, float pitch = PITCH) : Front(glm::vec3(-1.0f, 0.0f, 0.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVITY), Zoom(ZOOM)
     {
@@ -61,6 +64,15 @@ public:
     glm::mat4 GetViewMatrix()
     {
         return glm::lookAt(Position, Position + Front, Up);
+    }
+
+    glm::mat4 GetProjectionMatrix() {
+        return glm::perspective(glm::radians(45.0f), sizeX / sizeY, 0.1f, 400.0f);
+    }
+
+    void SetCameraSize(float x, float y) {
+        sizeX = x;
+        sizeY = y;
     }
 
     // processes input received from any keyboard-like input system. Accepts input parameter in the form of camera defined ENUM (to abstract it from windowing systems)

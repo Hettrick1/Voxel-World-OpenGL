@@ -126,5 +126,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glfwGetWindowSize(window, &width, &height);
     glfwSetWindowAspectRatio(window, width, height);
+    camera->SetCameraSize(width, height);
     glViewport(0, 0, width, height);
 }
