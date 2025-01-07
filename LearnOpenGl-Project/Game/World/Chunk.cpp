@@ -13,7 +13,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-            for (int z = 0; z < 12; z++) {
+            for (int z = 0; z < 50; z++) {
                 mChunk[x][y][z] = new GLuint(1); // Par exemple, initialisation à nullptr
                 count++;
             }
