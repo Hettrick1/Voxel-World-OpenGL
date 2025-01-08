@@ -37,5 +37,6 @@ public:
 	void Draw();
 	void AddFace(int x, int y, int z, glm::ivec3 direction);
 	glm::vec3 GetPosition();
+	void SetPosition(glm::vec3 newPos);
 };
 

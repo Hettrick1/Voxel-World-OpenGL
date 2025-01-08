@@ -122,6 +122,13 @@ glm::vec3 Chunk::GetPosition()
     return mPosition;
 }
 
+void Chunk::SetPosition(glm::vec3 newPos)
+{
+    mPosition.x = newPos.x * 16;
+    mPosition.y = newPos.y * 16;
+    mPosition.z = 0;
+}
+
 Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
 {
 	if (x == mPosition.x / CHUNK_SIZE_X && y == 0 && z == mPosition.z / CHUNK_SIZE_Z) {

@@ -27,6 +27,23 @@ float lastX = DEFAULT_WINDOW_X / 2.0f;
 float lastY = DEFAULT_WINDOW_Y / 2.0f;
 bool firstMouse = true;
 
+int frameCount = 0;
+double lastTime = 0.0;
+
+
+void calculateFPS() {
+    double currentTime = glfwGetTime();
+    frameCount++;
+
+    // Affiche les FPS toutes les secondes
+    if (currentTime - lastTime >= 1.0) {
+        std::cout << "FPS: " << frameCount << std::endl;
+        frameCount = 0;
+        lastTime = currentTime;
+    }
+}
+
+
 int main() {
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, GL_VERSION_MAJOR);
@@ -60,6 +77,8 @@ int main() {
         float currentFrame = glfwGetTime();
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
+
+        calculateFPS();
 
         //inputs
         processInput(window);
