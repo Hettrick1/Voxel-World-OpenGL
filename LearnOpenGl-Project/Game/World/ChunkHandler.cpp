@@ -1,7 +1,7 @@
 #include "ChunkHandler.h"
 
 #include <unordered_set>
-#include <tuple>
+#include <algorithm>
 
 struct ChunkHash {
 	size_t operator()(const std::pair<int, int>& pos) const {
@@ -16,6 +16,7 @@ struct ChunkEqual {
 };
 
 std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> activeChunks;
+std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> unactiveChunks;
 
 ChunkHandler::ChunkHandler(int renderDistance, Camera* cam)
 {
@@ -32,6 +33,8 @@ ChunkHandler::~ChunkHandler()
 	}
 	mActiveChunks.clear();
 	activeChunks.clear();
+    mOldChunks.clear();
+    unactiveChunks.clear();
 }
 
 void ChunkHandler::GenerateAllChunks()
@@ -55,33 +58,77 @@ void ChunkHandler::UpdateChunks()
     int cameraChunkX = static_cast<int>(std::floor(mCamera->GetPosition().x / 16));
     int cameraChunkY = static_cast<int>(std::floor(mCamera->GetPosition().y / 16));
 
-    for (int dx = -mRenderDistance; dx < mRenderDistance; ++dx) {
-        for (int dy = -mRenderDistance; dy < mRenderDistance; ++dy) {
-            int chunkX = cameraChunkX + dx;
-            int chunkY = cameraChunkY + dy;
+    glm::vec3 currentPosition = mCamera->GetPosition();
+    glm::vec3 direction = currentPosition - mPreviousCameraPosition;
+    mPreviousCameraPosition = currentPosition;
 
-            std::pair<int, int> newChunkPosition = { chunkX, chunkY };
+    if (glm::length(direction) < 0.01f) {
+        return;  // Pas de mouvement détecté, on arrête
+    }
 
-            // does the chunk already exist
-            if (activeChunks.find(newChunkPosition) == activeChunks.end()) {
+    // Normalisation et calcul de l'angle de direction
+    direction = glm::normalize(direction);
+    float angle = atan2(direction.y, direction.x); // Angle en radians
 
-                Chunk* newChunk = nullptr;
+    int width = 3;  // Largeur du rectangle en chunks
+    int height = mRenderDistance*2;
 
-                if (!mOldChunks.empty()) {
-                    newChunk = mOldChunks.back();
-                    mOldChunks.pop_back();
-                    newChunk->SetPosition(glm::vec3(chunkX, chunkY, 0));
-                }
-                else { // Create new chunk
-                    newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0));
-                }
-                activeChunks.insert(newChunkPosition);
-                mActiveChunks.push_back(newChunk);
-            }
+    // Génération de chunks orientée selon la direction
+    for (int i = -height / 2; i <= height / 2; ++i) {
+        for (int j = -width / 2; j <= width / 2; ++j) {
+            // Calcul de la position selon l'angle de la direction
+            int offsetX = static_cast<int>(std::round(i * cos(angle) - j * sin(angle)));
+            int offsetY = static_cast<int>(std::round(i * sin(angle) + j * cos(angle)));
+
+            int chunkX = cameraChunkX + offsetX;
+            int chunkY = cameraChunkY + offsetY;
+
+            GenerateNewChunk(chunkX, chunkY);
         }
     }
 
-    // Delete old chunks
+    // Suppression des vieux chunks
+    RemoveOldChunk(cameraChunkX, cameraChunkY);
+    
+}
+
+void ChunkHandler::DrawChunks()
+{
+	for (int i = 0; i < mActiveChunks.size(); i++) {
+		mActiveChunks[i]->Draw();
+	}
+}
+
+void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
+{
+    std::pair<int, int> newChunkPosition = { chunkX, chunkY };
+
+    // does the chunk already exist
+    if (activeChunks.find(newChunkPosition) == activeChunks.end() && unactiveChunks.find(newChunkPosition) == unactiveChunks.end()) {
+        // Create new chunk
+        Chunk* newChunk = nullptr;
+        newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0));
+        activeChunks.insert(newChunkPosition);
+        mActiveChunks.push_back(newChunk);
+    }
+    else if (unactiveChunks.find(newChunkPosition) != unactiveChunks.end()) {
+        auto it = std::find_if(mOldChunks.begin(), mOldChunks.end(),
+            [chunkX, chunkY](Chunk* chunk) {
+                glm::vec3 pos = chunk->GetPosition();
+                return static_cast<int>(pos.x / 16) == chunkX && static_cast<int>(pos.y / 16) == chunkY;
+            });
+
+        if (it != mOldChunks.end()) {
+            activeChunks.insert(newChunkPosition);
+            unactiveChunks.erase(newChunkPosition);
+            mActiveChunks.push_back(*it);
+            mOldChunks.erase(it);
+        }
+    }
+}
+
+void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
+{
     for (auto it = mActiveChunks.begin(); it != mActiveChunks.end();) {
         glm::vec3 pos = (*it)->GetPosition();
         int posChunkX = static_cast<int>(pos.x / 16);
@@ -92,6 +139,7 @@ void ChunkHandler::UpdateChunks()
 
         if (distX > mRenderDistance || distY > mRenderDistance) {
             activeChunks.erase({ posChunkX, posChunkY });
+            unactiveChunks.insert({ posChunkX, posChunkY });  // Ajouter dans la liste des chunks inactifs
             mOldChunks.push_back(*it);
             it = mActiveChunks.erase(it);
         }
@@ -99,11 +147,4 @@ void ChunkHandler::UpdateChunks()
             ++it;
         }
     }
-}
-
-void ChunkHandler::DrawChunks()
-{
-	for (int i = 0; i < mActiveChunks.size(); i++) {
-		mActiveChunks[i]->Draw();
-	}
 }

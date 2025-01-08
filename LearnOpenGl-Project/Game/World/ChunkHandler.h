@@ -22,10 +22,13 @@ public:
 	void GenerateAllChunks();
 	void UpdateChunks();
 	void DrawChunks();
+	void GenerateNewChunk(int chunkX, int chunkY);
+	void RemoveOldChunk(int cameraChunkX, int cameraChunkY);
 private:
 	std::vector<Chunk*> mActiveChunks;
 	std::vector<Chunk*> mOldChunks;
 	int mRenderDistance;
+	glm::vec3 mPreviousCameraPosition;
 	Camera* mCamera;
 };
 
