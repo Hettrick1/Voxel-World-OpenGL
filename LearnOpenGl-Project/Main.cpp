@@ -114,6 +114,11 @@ void processInput(GLFWwindow* window)
         camera->ProcessKeyboard(LEFT, cameraSpeed);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
         camera->ProcessKeyboard(RIGHT, cameraSpeed);
+    if (glfwGetKey(window, GLFW_KEY_F11) == GLFW_PRESS) {
+        glfwSetWindowMonitor(window, glfwGetPrimaryMonitor(), 0, 0, 1920, 1080, 165);
+        glViewport(0, 0, 1920, 1080);
+        camera->SetCameraSize(1920, 1080);
+    }
 }
 
 void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)

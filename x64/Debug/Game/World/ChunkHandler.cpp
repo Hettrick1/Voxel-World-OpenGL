@@ -46,20 +46,16 @@ void ChunkHandler::GenerateAllChunks()
 				activeChunks.insert(chunkPosition);
 				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
 				std::cout << "{ " << i << "," << j << " }" << std::endl;
-				std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
+				std::cout << mActiveChunks.size() << std::endl;
 			}
             else if (unactiveChunks.find(chunkPosition) == unactiveChunks.end()){
                 unactiveChunks.insert(chunkPosition);
                 mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
                 std::cout << "{ " << i << "," << j << " }" << std::endl;
-                std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
+                std::cout << mActiveChunks.size() << std::endl;
             }
 		}
 	}
-
-    std::cout << "Total chunks" << mActiveChunks.size() + mOldChunks.size() << std::endl;
-    std::cout << "Active chunks" << mActiveChunks.size() << std::endl;
-    std::cout << "unActive chunks" << mOldChunks.size() << std::endl;
 }
 
 void ChunkHandler::UpdateChunks()
