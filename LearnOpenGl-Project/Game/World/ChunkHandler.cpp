@@ -39,15 +39,21 @@ ChunkHandler::~ChunkHandler()
 
 void ChunkHandler::GenerateAllChunks()
 {
-	for (int i = -mRenderDistance; i < mRenderDistance; i++) {
-		for (int j = -mRenderDistance; j < mRenderDistance; j++) {
+	for (int i = -mRenderDistance * 3; i < mRenderDistance * 3; i++) {
+		for (int j = -mRenderDistance * 3; j < mRenderDistance * 3; j++) {
 			std::pair<int, int> chunkPosition = { i, j };
-			if (activeChunks.find(chunkPosition) == activeChunks.end()) {
+			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);
 				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
 				std::cout << "{ " << i << "," << j << " }" << std::endl;
 				std::cout << mActiveChunks.size() << std::endl;
 			}
+            else if (unactiveChunks.find(chunkPosition) == unactiveChunks.end()){
+                unactiveChunks.insert(chunkPosition);
+                mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
+                std::cout << "{ " << i << "," << j << " }" << std::endl;
+                std::cout << mActiveChunks.size() << std::endl;
+            }
 		}
 	}
 }
