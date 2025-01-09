@@ -2,6 +2,8 @@
 
 #include <glad/glad.h>
 
+#include "OpenGL/imageLoader/stb_image.h"
+
 #include "Utils/Defs.h"
 #include "Utils/Vertex.h"
 
@@ -25,6 +27,7 @@ private:
 	GLuint* mChunk[16][16][255] = { nullptr };
 	Camera* mCamera;
 	Shader* mShader;
+	GLuint mTexture;
 	glm::vec3 mPosition;
 	std::vector<Vertex> mAllVertices;
 	VertexArray vao;

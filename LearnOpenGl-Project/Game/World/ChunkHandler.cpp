@@ -39,8 +39,8 @@ ChunkHandler::~ChunkHandler()
 
 void ChunkHandler::GenerateAllChunks()
 {
-	for (int i = -mRenderDistance * 3; i < mRenderDistance * 3; i++) {
-		for (int j = -mRenderDistance * 3; j < mRenderDistance * 3; j++) {
+	for (int i = -mRenderDistance * 1; i < mRenderDistance * 1; i++) {
+		for (int j = -mRenderDistance * 1; j < mRenderDistance * 1; j++) {
 			std::pair<int, int> chunkPosition = { i, j };
 			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);

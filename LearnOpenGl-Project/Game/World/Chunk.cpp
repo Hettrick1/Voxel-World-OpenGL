@@ -6,6 +6,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     mPosition.x = pos.x * CHUNK_SIZE_X;
     mPosition.y = pos.y * CHUNK_SIZE_Y;
     mPosition.z = 0;
+    mTexture = 0;
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
@@ -28,6 +29,28 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
             }
         }
     }
+    glGenTextures(1, &mTexture);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+
+    // Paramètres de la texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("container.jpg", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        //std::cerr << "Failed to load texture" << std::endl;
+        std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
+    }
+    stbi_image_free(data);
 }
 
 Chunk::~Chunk()
@@ -78,6 +101,13 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
     };
 
+    static const glm::vec2 uvCoords[4] = {
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f}
+    };
+
     int faceIndex = -1;
     if (direction == glm::ivec3(1, 0, 0)) faceIndex = 0;   // Droite
     if (direction == glm::ivec3(-1, 0, 0)) faceIndex = 1;  // Gauche
@@ -92,28 +122,41 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         // Ajouter les 6 sommets
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
-                                             static_cast<uint8_t>(z + offsets[0].z)} });
+                                             static_cast<uint8_t>(z + offsets[0].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x),
+                                               static_cast<uint16_t>(uvCoords[0].y)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
                                              static_cast<uint8_t>(y + offsets[1].y),
-                                             static_cast<uint8_t>(z + offsets[1].z)} });
+                                             static_cast<uint8_t>(z + offsets[1].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[1].x),
+                                               static_cast<uint16_t>(uvCoords[1].y)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
-                                             static_cast<uint8_t>(z + offsets[2].z)} });
+                                             static_cast<uint8_t>(z + offsets[2].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x),
+                                               static_cast<uint16_t>(uvCoords[2].y)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
-                                             static_cast<uint8_t>(z + offsets[0].z)} });
+                                             static_cast<uint8_t>(z + offsets[0].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x),
+                                               static_cast<uint16_t>(uvCoords[0].y)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
-                                             static_cast<uint8_t>(z + offsets[2].z)} });
+                                             static_cast<uint8_t>(z + offsets[2].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x),
+                                               static_cast<uint16_t>(uvCoords[2].y)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
                                              static_cast<uint8_t>(y + offsets[3].y),
-                                             static_cast<uint8_t>(z + offsets[3].z)} });
+                                             static_cast<uint8_t>(z + offsets[3].z)},
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[3].x),
+                                               static_cast<uint16_t>(uvCoords[3].y)} });
     }
     // Configurer les attributs de sommet pour `Vertex`
     vao.Bind();
     // Remplir le buffer avec les données des sommets 
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     vao.Unbind();
 }
 
@@ -142,6 +185,11 @@ void Chunk::Draw()
     if (mAllVertices.size() > 0) {
         // Charger le shader et transmettre les matrices
         mShader->Use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        mShader->SetInt("u_Texture", 0);
+
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
         glm::mat4 view = mCamera->GetViewMatrix(); 
         glm::mat4 projection = mCamera->GetProjectionMatrix(); 

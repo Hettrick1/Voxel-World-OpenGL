@@ -64,7 +64,7 @@ int main() {
         return -1;
     }  
 
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
     glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
@@ -90,8 +90,6 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         chunkHandler->DrawChunks();
-
-        /*glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);*/
 
         //swap buffers
         glfwSwapBuffers(window);
