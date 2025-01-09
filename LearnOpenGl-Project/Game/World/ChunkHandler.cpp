@@ -23,6 +23,8 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam)
 	mRenderDistance = renderDistance;
 	mCamera = cam;
 	mActiveChunks.reserve((renderDistance * 2) * (renderDistance * 2));
+    mPreloadChunkFactor = 1;
+    mRectWidth = 7;
 	GenerateAllChunks();
 }
 
@@ -39,8 +41,8 @@ ChunkHandler::~ChunkHandler()
 
 void ChunkHandler::GenerateAllChunks()
 {
-	for (int i = -mRenderDistance * 1; i < mRenderDistance * 1; i++) {
-		for (int j = -mRenderDistance * 1; j < mRenderDistance * 1; j++) {
+	for (int i = -mRenderDistance * mPreloadChunkFactor; i < mRenderDistance * mPreloadChunkFactor; i++) {
+		for (int j = -mRenderDistance * mPreloadChunkFactor; j < mRenderDistance * mPreloadChunkFactor; j++) {
 			std::pair<int, int> chunkPosition = { i, j };
 			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);
@@ -72,20 +74,20 @@ void ChunkHandler::UpdateChunks()
     glm::vec3 direction = currentPosition - mPreviousCameraPosition;
     mPreviousCameraPosition = currentPosition;
 
-    if (glm::length(direction) < 0.01f) {
-        return;  // Pas de mouvement détecté, on arrête
+    if (glm::length(direction) < 0.01f) { // stops if the player doesn't move
+        return;
     }
 
-    // Normalisation et calcul de l'angle de direction
+    // direction angle calcul
     direction = glm::normalize(direction);
-    float angle = atan2(direction.y, direction.x); // Angle en radians
+    float angle = atan2(direction.y, direction.x);
 
-    int width = 3;  // Largeur du rectangle en chunks
+     // width of the rectangle
     int height = mRenderDistance*2;
 
     // Génération de chunks orientée selon la direction
     for (int i = -height / 2; i <= height / 2; ++i) {
-        for (int j = -width / 2; j <= width / 2; ++j) {
+        for (int j = -mRectWidth / 2; j <= mRectWidth / 2; ++j) {
             // Calcul de la position selon l'angle de la direction
             int offsetX = static_cast<int>(std::round(i * cos(angle) - j * sin(angle)));
             int offsetY = static_cast<int>(std::round(i * sin(angle) + j * cos(angle)));

@@ -70,7 +70,7 @@ int main() {
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
-    ChunkHandler* chunkHandler = new ChunkHandler(5, camera);
+    ChunkHandler* chunkHandler = new ChunkHandler(10, camera);
 
     while (!glfwWindowShouldClose(window)) {
 

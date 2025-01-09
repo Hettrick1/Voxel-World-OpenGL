@@ -78,9 +78,6 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
                 AddFace(x, y, z, directions[i]);
             }
         }
-        else if (x == 0 || x == CHUNK_SIZE_X-1|| y == 0 || y == CHUNK_SIZE_Y-1 || z == 0 || z == CHUNK_SIZE_Z-1) {
-            AddFace(x, y, z, directions[i]);
-        }
     }
 }
 

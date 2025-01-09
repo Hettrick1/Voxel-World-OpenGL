@@ -29,6 +29,8 @@ private:
 	std::vector<Chunk*> mOldChunks;
 	int mRenderDistance;
 	glm::vec3 mPreviousCameraPosition;
+	int mPreloadChunkFactor;
+	int mRectWidth;
 	Camera* mCamera;
 };
 
