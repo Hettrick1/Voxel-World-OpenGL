@@ -146,6 +146,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Utils\Defs.h" />
+    <ClInclude Include="Core\Utils\FastNoiseLite.h" />
     <ClInclude Include="Core\Utils\Vertex.h" />
     <ClInclude Include="Game\World\ChunkHandler.h" />
     <ClInclude Include="Game\World\Chunk.h" />

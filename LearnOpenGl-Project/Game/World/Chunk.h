@@ -21,10 +21,12 @@
 #include <iostream>
 #include <vector>
 
+#include "Utils/FastNoiseLite.h"
+
 class Chunk
 {
 private:
-	GLuint* mChunk[16][16][255] = { nullptr };
+	GLuint* mChunk[16][16][200] = { nullptr };
 	Camera* mCamera;
 	Shader* mShader;
 	GLuint mTexture;
@@ -32,8 +34,10 @@ private:
 	std::vector<Vertex> mAllVertices;
 	VertexArray vao;
 	VertexBuffer vbo;
+	float mBlockSize;
+	float mTextureWidth;
 public:
-	Chunk(Camera* cam, glm::vec3 pos);
+	Chunk(Camera* cam, glm::vec3 pos, int seed);
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
 	Chunk* GetChunkWithPosition(int x, int y, int z);

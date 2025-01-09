@@ -16,7 +16,7 @@
 class ChunkHandler
 {
 public:
-	ChunkHandler(int renderDistance, Camera* cam);
+	ChunkHandler(int renderDistance, Camera* cam, int seed);
 	~ChunkHandler();
 
 	void GenerateAllChunks();
@@ -31,6 +31,7 @@ private:
 	glm::vec3 mPreviousCameraPosition;
 	int mPreloadChunkFactor;
 	int mRectWidth;
+	int mSeed;
 	Camera* mCamera;
 };
 

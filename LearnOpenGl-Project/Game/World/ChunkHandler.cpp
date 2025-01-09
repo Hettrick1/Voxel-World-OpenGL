@@ -18,13 +18,14 @@ struct ChunkEqual {
 std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> activeChunks;
 std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> unactiveChunks;
 
-ChunkHandler::ChunkHandler(int renderDistance, Camera* cam)
+ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 {
 	mRenderDistance = renderDistance;
 	mCamera = cam;
 	mActiveChunks.reserve((renderDistance * 2) * (renderDistance * 2));
-    mPreloadChunkFactor = 1;
-    mRectWidth = 7;
+    mPreloadChunkFactor = 2;
+    mRectWidth = 16;
+    mSeed = seed;
 	GenerateAllChunks();
 }
 
@@ -46,13 +47,13 @@ void ChunkHandler::GenerateAllChunks()
 			std::pair<int, int> chunkPosition = { i, j };
 			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);
-				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
+				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed));
 				std::cout << "{ " << i << "," << j << " }" << std::endl;
 				std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
 			}
             else if (unactiveChunks.find(chunkPosition) == unactiveChunks.end()){
                 unactiveChunks.insert(chunkPosition);
-                mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0)));
+                mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed));
                 std::cout << "{ " << i << "," << j << " }" << std::endl;
                 std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
             }
@@ -115,11 +116,11 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
 {
     std::pair<int, int> newChunkPosition = { chunkX, chunkY };
 
-    // does the chunk already exist
+    // does NOT the chunk already exist
     if (activeChunks.find(newChunkPosition) == activeChunks.end() && unactiveChunks.find(newChunkPosition) == unactiveChunks.end()) {
         // Create new chunk
         Chunk* newChunk = nullptr;
-        newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0));
+        newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed);
         activeChunks.insert(newChunkPosition);
         mActiveChunks.push_back(newChunk);
     }
@@ -151,7 +152,7 @@ void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
 
         if (distX > mRenderDistance || distY > mRenderDistance) {
             activeChunks.erase({ posChunkX, posChunkY });
-            unactiveChunks.insert({ posChunkX, posChunkY });  // Ajouter dans la liste des chunks inactifs
+            unactiveChunks.insert({ posChunkX, posChunkY });  // Add in the unactive chunk list
             mOldChunks.push_back(*it);
             it = mActiveChunks.erase(it);
         }

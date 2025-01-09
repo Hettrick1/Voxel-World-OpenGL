@@ -1,6 +1,6 @@
 #include "Chunk.h"
 
-Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
+Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
@@ -10,25 +10,33 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
+    FastNoiseLite noise;
+    noise.SetSeed(seed);
+    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+
     // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-            for (int z = 0; z < 50; z++) {
-                mChunk[x][y][z] = new GLuint(1); // Par exemple, initialisation à nullptr
-                count++;
+
+            float scale = 0.8f;
+            float globalX = mPosition.x + x;
+            float globalY = mPosition.y + y;
+
+            float heightValue = noise.GetNoise(globalX * scale, globalY * scale);
+            int height = static_cast<int>((heightValue + 1.0f) * 0.2f * CHUNK_SIZE_Z);
+
+            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                if (z <= height) {
+                    mChunk[x][y][z] = new GLuint(1);
+                }
+                else {
+                    mChunk[x][y][z] = nullptr;
+                }
             }
         }
     }
 
-    // Calculer les faces visibles et les stocker dans mAllVertices
-    for (int x = 0; x < CHUNK_SIZE_X; x++) {
-        for (int y = 0; y < CHUNK_SIZE_Y; y++) {
-            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                CheckForNeighbors(x, y, z);
-            }
-        }
-    }
     glGenTextures(1, &mTexture);
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
@@ -39,9 +47,11 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("Game/Resources/64x64_sheet.png", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("Game/Resources/176x16_sheet.png", &width, &height, &nrChannels, 0);
     if (data)
     {
+        mBlockSize = height;
+        mTextureWidth = width;
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
@@ -51,6 +61,21 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
         std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
     }
     stbi_image_free(data);
+
+    // Calculate visible faces
+    for (int x = 0; x < CHUNK_SIZE_X; x++) {
+        for (int y = 0; y < CHUNK_SIZE_Y; y++) {
+            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                CheckForNeighbors(x, y, z);
+            }
+        }
+    }
+
+    vao.Bind(); 
+    vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW); 
+    vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
+    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords)); 
+    vao.Unbind();
 }
 
 Chunk::~Chunk()
@@ -87,41 +112,49 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         // Face droite (+X)
         {{1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}},
         // Face gauche (-X)
-        {{0, 0, 0}, {0, 0, 1}, {0, 1, 1}, {0, 1, 0}},
-        // Face haut (+Z)
-        {{0, 1, 0}, {0, 1, 1}, {1, 1, 1}, {1, 1, 0}},
-        // Face bas (-Z)
+        {{0, 0, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}},
+        // Face derrière (+Y)
+        {{0, 1, 0}, {1, 1, 0}, {1, 1, 1}, {0, 1, 1}},
+        // Face devant (-Y)
         {{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}},
-        // Face avant (+Y)
+        // Face haut (+Z)
         {{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}},
-        // Face arrière (-Y)
+        // Face bas (-Z)
         {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
-    };
-
-    int blockIndex = 4;
-    float blockSize = 64.0f;
-    float textureWidth = 1920.0f;
-    float uMin = (blockIndex * blockSize) / textureWidth;
-    float uMax = ((blockIndex + 1) * blockSize) / textureWidth;
-
-    static const glm::vec2 uvCoords[4] = {
-        {uMin, 0.0f},
-        {uMax, 0.0f},
-        {uMax, 1.0f},
-        {uMin, 1.0f}
     };
 
     int faceIndex = -1;
     if (direction == glm::ivec3(1, 0, 0)) faceIndex = 0;   // Droite
     if (direction == glm::ivec3(-1, 0, 0)) faceIndex = 1;  // Gauche
-    if (direction == glm::ivec3(0, 1, 0)) faceIndex = 2;   // Haut
-    if (direction == glm::ivec3(0, -1, 0)) faceIndex = 3;  // Bas
-    if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Avant
-    if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Arrière
+    if (direction == glm::ivec3(0, 1, 0)) faceIndex = 2;   // Avant
+    if (direction == glm::ivec3(0, -1, 0)) faceIndex = 3;  // Arrière
+    if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Haut
+    if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Bas
+
+    int blockIndex;
+    switch (faceIndex) {
+    case 0: blockIndex = 2; break;
+    case 1: blockIndex = 1; break;
+    case 2: blockIndex = 1; break;
+    case 3: blockIndex = 1; break;
+    case 4: blockIndex = 0; break;
+    case 5: blockIndex = 1; break;
+    default: blockIndex = 0; break;
+    }
+
+    float uMin = (blockIndex * mBlockSize) / mTextureWidth;
+    float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
+
+    glm::vec2 uvCoords[4] = {
+        {uMax, 1.0f},
+        {uMin, 1.0f},
+        {uMin, 0.0f},
+        {uMax, 0.0f},
+    };
 
     if (faceIndex >= 0) {
         const glm::vec3* offsets = vertexOffsets[faceIndex];
-
+  
         // Ajouter les 6 sommets
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
@@ -154,13 +187,6 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
                                        i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
                                                static_cast<uint16_t>(uvCoords[3].y * 65535)} });
     }
-    // Configurer les attributs de sommet pour `Vertex`
-    vao.Bind();
-    // Remplir le buffer avec les données des sommets 
-    vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
-    vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
-    vao.Unbind();
 }
 
 glm::vec3 Chunk::GetPosition()

@@ -2,7 +2,7 @@
 
 #define CHUNK_SIZE_X 16
 #define CHUNK_SIZE_Y 16
-#define CHUNK_SIZE_Z 255
+#define CHUNK_SIZE_Z 200
 
 #define DEFAULT_WINDOW_X 1280
 #define DEFAULT_WINDOW_Y 800
