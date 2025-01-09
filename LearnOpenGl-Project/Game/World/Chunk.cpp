@@ -33,16 +33,16 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
     // Paramètres de la texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
     int width, height, nrChannels;
-    unsigned char* data = stbi_load("Game/Resources/container.jpg", &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load("Game/Resources/64x64_sheet.png", &width, &height, &nrChannels, 0);
     if (data)
     {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
     else
@@ -101,11 +101,17 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
     };
 
+    int blockIndex = 4;
+    float blockSize = 64.0f;
+    float textureWidth = 1920.0f;
+    float uMin = (blockIndex * blockSize) / textureWidth;
+    float uMax = ((blockIndex + 1) * blockSize) / textureWidth;
+
     static const glm::vec2 uvCoords[4] = {
-        {0.0f, 0.0f},
-        {1.0f, 0.0f},
-        {1.0f, 1.0f},
-        {0.0f, 1.0f}
+        {uMin, 0.0f},
+        {uMax, 0.0f},
+        {uMax, 1.0f},
+        {uMin, 1.0f}
     };
 
     int faceIndex = -1;
@@ -123,40 +129,40 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
                                              static_cast<uint8_t>(z + offsets[0].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x),
-                                               static_cast<uint16_t>(uvCoords[0].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[0].y * 65535)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
                                              static_cast<uint8_t>(y + offsets[1].y),
                                              static_cast<uint8_t>(z + offsets[1].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[1].x),
-                                               static_cast<uint16_t>(uvCoords[1].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[1].y * 65535)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
                                              static_cast<uint8_t>(z + offsets[2].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x),
-                                               static_cast<uint16_t>(uvCoords[2].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[2].y * 65535)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
                                              static_cast<uint8_t>(z + offsets[0].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x),
-                                               static_cast<uint16_t>(uvCoords[0].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[0].y * 65535)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
                                              static_cast<uint8_t>(z + offsets[2].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x),
-                                               static_cast<uint16_t>(uvCoords[2].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[2].y * 65535)} });
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
                                              static_cast<uint8_t>(y + offsets[3].y),
                                              static_cast<uint8_t>(z + offsets[3].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[3].x),
-                                               static_cast<uint16_t>(uvCoords[3].y)} });
+                                       i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
+                                               static_cast<uint16_t>(uvCoords[3].y * 65535)} });
     }
     // Configurer les attributs de sommet pour `Vertex`
     vao.Bind();
     // Remplir le buffer avec les données des sommets 
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW);
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
-    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
+    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     vao.Unbind();
 }
 
