@@ -10,9 +10,11 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
-    FastNoiseLite noise;
-    noise.SetSeed(seed);
-    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
+    FastNoiseLite heightMap;
+    heightMap.SetSeed(seed);
+    heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    FastNoiseLite biome;
+    biome.SetSeed(seed);
 
     // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
     int count = 0;
@@ -23,8 +25,10 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
             float globalX = mPosition.x + x;
             float globalY = mPosition.y + y;
 
-            float heightValue = noise.GetNoise(globalX * scale, globalY * scale);
-            int height = static_cast<int>((heightValue + 1.0f) * 0.2f * CHUNK_SIZE_Z);
+            float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
+            float heightBiome = biome.GetNoise(globalX * (scale / 20), globalY * (scale / 20));
+            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 if (z < height - 2) {
