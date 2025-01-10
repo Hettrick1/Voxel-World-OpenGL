@@ -12,14 +12,14 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 
     FastNoiseLite noise;
     noise.SetSeed(seed);
-    noise.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
+    noise.SetNoiseType(FastNoiseLite::NoiseType_OpenSimplex2);
 
     // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
 
-            float scale = 0.8f;
+            float scale = 2.0f;
             float globalX = mPosition.x + x;
             float globalY = mPosition.y + y;
 
@@ -27,12 +27,16 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
             int height = static_cast<int>((heightValue + 1.0f) * 0.2f * CHUNK_SIZE_Z);
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                if (z <= height) {
-                    mChunk[x][y][z] = new GLuint(1);
+                if (z < height - 2) {
+                    mChunk[x][y][z] = new GLuint(3); //stone
                 }
-                else {
-                    mChunk[x][y][z] = nullptr;
+                else if (z >= height - 2 && z < height) {
+                    mChunk[x][y][z] = new GLuint(2); //dirt
                 }
+                else if (z == height) {
+                    mChunk[x][y][z] = new GLuint(1); //grass
+                }
+                else mChunk[x][y][z] = nullptr;
             }
         }
     }
@@ -100,13 +104,13 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
         if (nx >= 0 && nx < CHUNK_SIZE_X && ny >= 0 && ny < CHUNK_SIZE_Y && nz >= 0 && nz < CHUNK_SIZE_Z) {
             if (mChunk[nx][ny][nz] == nullptr) {
                 // Ajouter les 6 sommets nécessaires pour dessiner une face
-                AddFace(x, y, z, directions[i]);
+                AddFace(x, y, z, directions[i], *mChunk[x][y][z]);
             }
         }
     }
 }
 
-void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
+void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
 {
     static const glm::vec3 vertexOffsets[6][4] = {
         // Face droite (+X)
@@ -131,16 +135,44 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction)
     if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Haut
     if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Bas
 
-    int blockIndex;
-    switch (faceIndex) {
-    case 0: blockIndex = 2; break;
-    case 1: blockIndex = 1; break;
-    case 2: blockIndex = 1; break;
-    case 3: blockIndex = 1; break;
-    case 4: blockIndex = 0; break;
-    case 5: blockIndex = 1; break;
-    default: blockIndex = 0; break;
+    int blockIndex = 0;
+    switch (blockType)
+    {
+    case 1 :
+        switch (faceIndex) {
+        case 0: blockIndex = static_cast<int>(Block::GrassSideShadow); break;
+        case 1: blockIndex = static_cast<int>(Block::GrassSide); break;
+        case 2: blockIndex = static_cast<int>(Block::GrassSide); break;
+        case 3: blockIndex = static_cast<int>(Block::GrassSide); break;
+        case 4: blockIndex = static_cast<int>(Block::GrassTop); break;
+        case 5: blockIndex = static_cast<int>(Block::GrassSide); break;
+        default: blockIndex = static_cast<int>(Block::Cobblestone); break;
+        }
+        break;
+    case 2:
+        switch (faceIndex) {
+        case 0: blockIndex = static_cast<int>(Block::DirtShadow); break;
+        case 1: blockIndex = static_cast<int>(Block::Dirt); break;
+        case 2: blockIndex = static_cast<int>(Block::Dirt); break;
+        case 3: blockIndex = static_cast<int>(Block::Dirt); break;
+        case 4: blockIndex = static_cast<int>(Block::Dirt); break;
+        case 5: blockIndex = static_cast<int>(Block::Dirt); break;
+        default: blockIndex = static_cast<int>(Block::Cobblestone); break;
+        }
+        break;
+    case 3:
+        switch (faceIndex) {
+        case 0: blockIndex = static_cast<int>(Block::StoneShadow); break;
+        case 1: blockIndex = static_cast<int>(Block::Stone); break;
+        case 2: blockIndex = static_cast<int>(Block::Stone); break;
+        case 3: blockIndex = static_cast<int>(Block::Stone); break;
+        case 4: blockIndex = static_cast<int>(Block::Stone); break;
+        case 5: blockIndex = static_cast<int>(Block::Stone); break;
+        default: blockIndex = static_cast<int>(Block::Cobblestone); break;
+        }
+        break;
     }
+    
 
     float uMin = (blockIndex * mBlockSize) / mTextureWidth;
     float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;

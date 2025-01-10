@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "Utils/FastNoiseLite.h"
+#include "Enums/BlockTextureEnum.h"
 
 class Chunk
 {
@@ -42,7 +43,7 @@ public:
 	void CheckForNeighbors(int x, int y, int z);
 	Chunk* GetChunkWithPosition(int x, int y, int z);
 	void Draw();
-	void AddFace(int x, int y, int z, glm::ivec3 direction);
+	void AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType);
 	glm::vec3 GetPosition();
 	void SetPosition(glm::vec3 newPos);
 };

@@ -156,6 +156,7 @@
     <ClInclude Include="Core\OpenGL\VertexArray.h" />
     <ClInclude Include="Core\OpenGL\VertexBuffer.h" />
     <ClInclude Include="Core\OpenGL\IndexBuffer.h" />
+    <ClInclude Include="Game\World\Enums\BlockTextureEnum.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\shader.fs" />
