@@ -32,15 +32,17 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 if (z < height - 2) {
-                    mChunk[x][y][z] = new GLuint(3); //stone
+                    mChunk[x][y][z] = new GLuint(3); // stone
                 }
                 else if (z >= height - 2 && z < height) {
-                    mChunk[x][y][z] = new GLuint(2); //dirt
+                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? new GLuint(4) : new GLuint(2); // sand or dirt
                 }
                 else if (z == height) {
-                    mChunk[x][y][z] = new GLuint(1); //grass
+                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? new GLuint(4) : new GLuint(1); // sand or grass
                 }
-                else mChunk[x][y][z] = nullptr;
+                else {
+                    mChunk[x][y][z] = nullptr;
+                }
             }
         }
     }
@@ -147,7 +149,7 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
         case 0: blockIndex = static_cast<int>(Block::GrassSideShadow); break;
         case 1: blockIndex = static_cast<int>(Block::GrassSide); break;
         case 2: blockIndex = static_cast<int>(Block::GrassSide); break;
-        case 3: blockIndex = static_cast<int>(Block::GrassSide); break;
+        case 3: blockIndex = static_cast<int>(Block::GrassSideShadow); break;
         case 4: blockIndex = static_cast<int>(Block::GrassTop); break;
         case 5: blockIndex = static_cast<int>(Block::GrassSide); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -158,7 +160,7 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
         case 0: blockIndex = static_cast<int>(Block::DirtShadow); break;
         case 1: blockIndex = static_cast<int>(Block::Dirt); break;
         case 2: blockIndex = static_cast<int>(Block::Dirt); break;
-        case 3: blockIndex = static_cast<int>(Block::Dirt); break;
+        case 3: blockIndex = static_cast<int>(Block::DirtShadow); break;
         case 4: blockIndex = static_cast<int>(Block::Dirt); break;
         case 5: blockIndex = static_cast<int>(Block::Dirt); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -169,9 +171,20 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
         case 0: blockIndex = static_cast<int>(Block::StoneShadow); break;
         case 1: blockIndex = static_cast<int>(Block::Stone); break;
         case 2: blockIndex = static_cast<int>(Block::Stone); break;
-        case 3: blockIndex = static_cast<int>(Block::Stone); break;
+        case 3: blockIndex = static_cast<int>(Block::StoneShadow); break;
         case 4: blockIndex = static_cast<int>(Block::Stone); break;
         case 5: blockIndex = static_cast<int>(Block::Stone); break;
+        default: blockIndex = static_cast<int>(Block::Cobblestone); break;
+        }
+        break;
+    case 4:
+        switch (faceIndex) {
+        case 0: blockIndex = static_cast<int>(Block::SandShadow); break;
+        case 1: blockIndex = static_cast<int>(Block::Sand); break;
+        case 2: blockIndex = static_cast<int>(Block::Sand); break;
+        case 3: blockIndex = static_cast<int>(Block::SandShadow); break;
+        case 4: blockIndex = static_cast<int>(Block::Sand); break;
+        case 5: blockIndex = static_cast<int>(Block::Sand); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
         }
         break;
