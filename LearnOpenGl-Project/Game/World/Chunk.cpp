@@ -10,10 +10,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
-    FastNoiseLite heightMap;
     heightMap.SetSeed(seed);
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    FastNoiseLite biome;
     biome.SetSeed(seed);
 
     // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
@@ -80,6 +78,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
             }
         }
     }
+    // Calculate visible faces between chunks
+    CheckWithNeighborsChunk();
 
     vao.Bind(); 
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW); 
@@ -90,6 +90,13 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
 
 Chunk::~Chunk()
 {
+    for (int x = 0; x < CHUNK_SIZE_X; ++x) {
+        for (int y = 0; y < CHUNK_SIZE_Y; ++y) {
+            for (int z = 0; z < CHUNK_SIZE_Z; ++z) {
+                delete mChunk[x][y][z];  // Supprimer les blocs alloués
+            }
+        }
+    }
 }
 
 void Chunk::CheckForNeighbors(int x, int y, int z)
@@ -114,6 +121,11 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
             }
         }
     }
+}
+
+void Chunk::CheckWithNeighborsChunk()
+{
+    
 }
 
 void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)

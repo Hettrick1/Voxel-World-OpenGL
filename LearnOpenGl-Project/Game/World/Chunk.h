@@ -37,10 +37,13 @@ private:
 	VertexBuffer vbo;
 	float mBlockSize;
 	float mTextureWidth;
+	FastNoiseLite heightMap;
+	FastNoiseLite biome;
 public:
 	Chunk(Camera* cam, glm::vec3 pos, int seed);
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
+	void CheckWithNeighborsChunk();
 	Chunk* GetChunkWithPosition(int x, int y, int z);
 	void Draw();
 	void AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType);
