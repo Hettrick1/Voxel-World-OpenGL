@@ -72,6 +72,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
 
     ChunkHandler* chunkHandler = new ChunkHandler(16, camera, 12345);
+    Sky* skybox = new Sky(camera, camera->GetPosition());
 
     while (!glfwWindowShouldClose(window)) {
 
@@ -90,6 +91,7 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        skybox->Draw();
         chunkHandler->DrawChunks();
 
         //swap buffers
