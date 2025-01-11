@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\glad.c" />
+    <ClCompile Include="Core\Utils\CubeTextureMap.cpp" />
     <ClCompile Include="Game\World\ChunkHandler.cpp" />
     <ClCompile Include="Game\World\Chunk.cpp" />
     <ClCompile Include="Core\OpenGL\IndexBuffer.cpp" />
@@ -143,11 +144,13 @@
     <ClCompile Include="Core\OpenGL\imageLoader\stb_image.cpp" />
     <ClCompile Include="Core\OpenGL\VertexArray.cpp" />
     <ClCompile Include="Core\OpenGL\VertexBuffer.cpp" />
+    <ClCompile Include="Game\World\Sky.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\Utils\Defs.h" />
     <ClInclude Include="Core\Utils\FastNoiseLite.h" />
     <ClInclude Include="Core\Utils\Vertex.h" />
+    <ClInclude Include="Core\Utils\CubeTextureMap.h" />
     <ClInclude Include="Game\World\ChunkHandler.h" />
     <ClInclude Include="Game\World\Chunk.h" />
     <ClInclude Include="Core\OpenGL\Camera.hpp" />
@@ -157,10 +160,13 @@
     <ClInclude Include="Core\OpenGL\VertexBuffer.h" />
     <ClInclude Include="Core\OpenGL\IndexBuffer.h" />
     <ClInclude Include="Game\World\Enums\BlockTextureEnum.h" />
+    <ClInclude Include="Game\World\Sky.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\shader.fs" />
     <None Include="Core\Shaders\shader.vs" />
+    <None Include="Core\Shaders\skyShader.fs" />
+    <None Include="Core\Shaders\skyShader.vs" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

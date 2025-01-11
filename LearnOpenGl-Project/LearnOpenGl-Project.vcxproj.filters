@@ -45,6 +45,12 @@
     <ClCompile Include="Core\OpenGL\IndexBuffer.cpp">
       <Filter>Fichiers sources</Filter>
     </ClCompile>
+    <ClCompile Include="Game\World\Sky.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Utils\CubeTextureMap.cpp">
+      <Filter>Fichiers sources</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Core\OpenGL\Shader.h">
@@ -83,6 +89,12 @@
     <ClInclude Include="Game\World\Enums\BlockTextureEnum.h">
       <Filter>Fichiers d%27en-tête</Filter>
     </ClInclude>
+    <ClInclude Include="Game\World\Sky.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Utils\CubeTextureMap.h">
+      <Filter>Fichiers d%27en-tête</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\shader.fs">
@@ -91,5 +103,7 @@
     <None Include="Core\Shaders\shader.vs">
       <Filter>Shaders</Filter>
     </None>
+    <None Include="Core\Shaders\skyShader.fs" />
+    <None Include="Core\Shaders\skyShader.vs" />
   </ItemGroup>
 </Project>

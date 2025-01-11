@@ -5,6 +5,7 @@
 #include "Core/OpenGL/Shader.h"
 #include "Core/OpenGL/Camera.hpp"
 #include "Game/World/ChunkHandler.h"
+#include "World/Sky.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
