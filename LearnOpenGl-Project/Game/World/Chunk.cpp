@@ -125,7 +125,83 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
 
 void Chunk::CheckWithNeighborsChunk()
 {
-    
+    glm::ivec3 directions[4] = {
+        {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
+        {0, 1, 0}, {0, -1, 0},  // Avant, Arrière
+    };
+
+    for (int i = 0; i < 4; i++) {
+        int directionIndex = -1;
+        if (directions[i] == glm::ivec3(1, 0, 0)) directionIndex = 0;   // Droite
+        if (directions[i] == glm::ivec3(-1, 0, 0)) directionIndex = 1;  // Gauche
+        if (directions[i] == glm::ivec3(0, 1, 0)) directionIndex = 2;   // Avant
+        if (directions[i] == glm::ivec3(0, -1, 0)) directionIndex = 3;  // Arrière
+        
+        int oldX = mPosition.x;
+        int oldY = mPosition.y;
+        int newX = mPosition.x;
+        int newY = mPosition.y;
+        int x = 0;
+        int y = 0;
+
+        for (int j = 0; j < 16; j++) {
+            switch (directionIndex)
+            {
+            case 0:
+                oldX = mPosition.x + 15;
+                oldY = mPosition.y + j;
+                newX = mPosition.x + 16;
+                newY = mPosition.y + j;
+                x = 15;
+                y = j;
+                break;
+            case 1:
+                oldX = mPosition.x;
+                oldY = mPosition.y + j;
+                newX = mPosition.x -1;
+                newY = mPosition.y + j;
+                x = 0;
+                y = j;
+                break;
+            case 2:
+                oldX = mPosition.x + j;
+                oldY = mPosition.y + 15;
+                newX = mPosition.x + j;
+                newY = mPosition.y + 16;
+                x = j;
+                y = 15;
+                break;
+            case 3:
+                oldX = mPosition.x + j;
+                oldY = mPosition.y;
+                newX = mPosition.x + j;
+                newY = mPosition.y - 1;
+                x = j;
+                y = 0;
+                break;
+            }
+            float scale = 2.0f;
+
+            float heightValue = heightMap.GetNoise(oldX * scale, oldY * scale); 
+            float heightBiome = biome.GetNoise(oldX * (scale / 20), oldY * (scale / 20));
+            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
+
+            float newHeightValue = heightMap.GetNoise(newX * scale, newY * scale);
+            float newHeightBiome = biome.GetNoise(newX * (scale / 20), newY * (scale / 20));
+            float newHeightMultiplier = (newHeightBiome + 1.0f) / 4;
+            int newHeight = static_cast<int>((newHeightValue + 1.0f) * newHeightMultiplier * CHUNK_SIZE_Z);
+
+            for (int z = 0; z < CHUNK_SIZE_Z; z++) {
+                // Vérification finale avant l'accès
+                if (height > newHeight && z <= height && z > newHeight) {
+                    if (mChunk[x][y][z] != nullptr) {
+                        AddFace(x, y, z, directions[i], *mChunk[x][y][z]);
+                    }
+                }
+            }
+        }
+    }
 }
 
 void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)

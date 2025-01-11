@@ -23,7 +23,7 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 	mRenderDistance = renderDistance;
 	mCamera = cam;
 	mActiveChunks.reserve((renderDistance * 2) * (renderDistance * 2));
-    mPreloadChunkFactor = 1;
+    mPreloadChunkFactor = 3;
     mRectWidth = 16;
     mSeed = seed;
 	GenerateAllChunks();
