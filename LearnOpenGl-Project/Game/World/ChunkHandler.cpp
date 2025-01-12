@@ -26,6 +26,30 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     mPreloadChunkFactor = 1;
     mRectWidth = 16;
     mSeed = seed;
+    glGenTextures(1, &mTexture);
+    glBindTexture(GL_TEXTURE_2D, mTexture);
+
+    // Paramètres de la texture
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    int width, height, nrChannels;
+    unsigned char* data = stbi_load("Game/Resources/368x16_sheet.png", &width, &height, &nrChannels, 0);
+    if (data)
+    {
+        mBlockSize = height;
+        mTextureWidth = width;
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
+    else
+    {
+        //std::cerr << "Failed to load texture" << std::endl;
+        std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
+    }
+    stbi_image_free(data);
 	GenerateAllChunks();
 }
 
@@ -47,13 +71,13 @@ void ChunkHandler::GenerateAllChunks()
 			std::pair<int, int> chunkPosition = { i, j };
 			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);
-				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed));
+				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize));
 				std::cout << "{ " << i << "," << j << " }" << std::endl;
 				std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
 			}
             else if (unactiveChunks.find(chunkPosition) == unactiveChunks.end()){
                 unactiveChunks.insert(chunkPosition);
-                mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed));
+                mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize));
                 std::cout << "{ " << i << "," << j << " }" << std::endl;
                 std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
             }
@@ -110,6 +134,20 @@ void ChunkHandler::DrawChunks()
 	for (int i = 0; i < mActiveChunks.size(); i++) {
 		mActiveChunks[i]->Draw();
 	}
+    for (int i = 0; i < mActiveChunks.size(); i++) {
+        // Calcul de la position du chunk
+        glm::vec3 chunkPos = mActiveChunks[i]->GetPosition();
+
+        // Calcul de la distance entre la caméra et le chunk
+        float distance = glm::length(chunkPos - glm::vec3(mCamera->GetPosition().x, mCamera->GetPosition().y, 0));
+
+        distance /= 16;
+
+        // Si le chunk est transparent et proche de la caméra, on l'affiche
+        if (distance < 8) {
+            mActiveChunks[i]->DrawTransparent();
+        }
+    }
 }
 
 void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
@@ -120,7 +158,7 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
     if (activeChunks.find(newChunkPosition) == activeChunks.end() && unactiveChunks.find(newChunkPosition) == unactiveChunks.end()) {
         // Create new chunk
         Chunk* newChunk = nullptr;
-        newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed);
+        newChunk = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed, mTexture, mTextureWidth, mBlockSize);
         activeChunks.insert(newChunkPosition);
         mActiveChunks.push_back(newChunk);
     }

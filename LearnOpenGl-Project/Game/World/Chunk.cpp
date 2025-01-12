@@ -1,12 +1,14 @@
 #include "Chunk.h"
 
-Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
+Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) : vbo(GL_ARRAY_BUFFER), transparentVbo(GL_ARRAY_BUFFER)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
     mPosition.y = pos.y * CHUNK_SIZE_Y;
     mPosition.z = 0;
-    mTexture = 0;
+    mTexture = texture;
+    mBlockSize = texHeight;
+    mTextureWidth = texWidth;
 
     mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
 
@@ -45,47 +47,38 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed) : vbo(GL_ARRAY_BUFFER)
         }
     }
 
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
-
-    // Paramètres de la texture
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load("Game/Resources/176x16_sheet.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        mBlockSize = height;
-        mTextureWidth = width;
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        //std::cerr << "Failed to load texture" << std::endl;
-        std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
-    }
-    stbi_image_free(data);
+    // Calculate visible faces between chunks
+    CheckWithNeighborsChunk();
 
     // Calculate visible faces
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 CheckForNeighbors(x, y, z);
+                // Add folliage
+                float probability = 0.01f;
+
+                // random number between 0 and 1
+                float randomValue = static_cast<float>(rand()) / RAND_MAX;
+
+                if (randomValue < probability) {
+                    AddFolliage(x, y, z); 
+                }
             }
         }
     }
-    // Calculate visible faces between chunks
-    CheckWithNeighborsChunk();
 
     vao.Bind(); 
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW); 
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords)); 
     vao.Unbind();
+
+    transparentVao.Bind();
+    transparentVbo.BufferData(mTransparentVertices.size() * sizeof(Vertex), mTransparentVertices.data(), GL_STATIC_DRAW);
+    transparentVbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    transparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
+    transparentVao.Unbind();
 }
 
 Chunk::~Chunk()
@@ -204,6 +197,73 @@ void Chunk::CheckWithNeighborsChunk()
     }
 }
 
+void Chunk::AddFolliage(int x, int y, int z)
+{
+    static const glm::vec3 vertexOffsets[2][4] = {
+         {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+         // Face diagonale 2 (perpendiculaire à la première, croisée, rotated around Z)
+         {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+    };
+
+    if (mChunk[x][y][z] != nullptr) {
+        if ((*mChunk[x][y][z] == 4 || *mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == nullptr) {
+            int blockIndex = static_cast<int>(Block::DeadBush);
+            switch (*mChunk[x][y][z])
+            {
+            case 1 :
+                blockIndex = static_cast<int>(Block::Dandelion);
+                break;
+            case 4:
+                blockIndex = static_cast<int>(Block::DeadBush);
+                break;
+            }
+            
+            float uMin = (blockIndex * mBlockSize) / mTextureWidth;
+            float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
+
+            glm::vec2 uvCoords[4] = {
+                {uMin, 0.0f},
+                {uMin, 1.0f},
+                {uMax, 1.0f},
+                {uMax, 0.0f},
+            };
+            for (int i = 0; i < 2; i++){
+            const glm::vec3* offsets = vertexOffsets[i];
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+                                                 static_cast<uint8_t>(y + offsets[0].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[0].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[0].y * 65535)} });
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
+                                                 static_cast<uint8_t>(y + offsets[1].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[1].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[1].y * 65535)} });
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+                                                 static_cast<uint8_t>(y + offsets[2].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[2].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[2].y * 65535)} });
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+                                                 static_cast<uint8_t>(y + offsets[0].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[0].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[0].y * 65535)} });
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+                                                 static_cast<uint8_t>(y + offsets[2].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[2].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[2].y * 65535)} });
+            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
+                                                 static_cast<uint8_t>(y + offsets[3].y),
+                                                 static_cast<uint8_t>(z + 1 + offsets[3].z)},
+                                           i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
+                                                   static_cast<uint16_t>(uvCoords[3].y * 65535)} });
+            }
+        }
+    }
+}
+
 void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
 {
     static const glm::vec3 vertexOffsets[6][4] = {
@@ -278,7 +338,6 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
         break;
     }
     
-
     float uMin = (blockIndex * mBlockSize) / mTextureWidth;
     float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
@@ -347,7 +406,7 @@ Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
 }
 
 void Chunk::Draw()
-{
+{ 
     if (mAllVertices.size() > 0) {
         // Charger le shader et transmettre les matrices
         mShader->Use();
@@ -366,5 +425,29 @@ void Chunk::Draw()
         vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, mAllVertices.size());
         vao.Unbind();
+    }
+}
+void Chunk::DrawTransparent()
+{
+    if (mTransparentVertices.size() > 0) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+        mShader->Use();
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, mTexture);
+        mShader->SetInt("u_Texture", 0);
+
+        glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);
+        glm::mat4 view = mCamera->GetViewMatrix();
+        glm::mat4 projection = mCamera->GetProjectionMatrix();
+        glm::mat4 mvp = projection * view * model;
+
+        mShader->SetMat4("u_MVP", mvp);
+        transparentVao.Bind();
+        glDrawArrays(GL_TRIANGLES, 0, mTransparentVertices.size());
+        transparentVao.Unbind();
+        glDisable(GL_BLEND);
     }
 }

@@ -20,6 +20,7 @@
 
 #include <iostream>
 #include <vector>
+#include <random>
 
 #include "Utils/FastNoiseLite.h"
 #include "Enums/BlockTextureEnum.h"
@@ -33,19 +34,24 @@ private:
 	GLuint mTexture;
 	glm::vec3 mPosition;
 	std::vector<Vertex> mAllVertices;
+	std::vector<Vertex> mTransparentVertices;
 	VertexArray vao;
 	VertexBuffer vbo;
+	VertexArray transparentVao;
+	VertexBuffer transparentVbo;
 	float mBlockSize;
 	float mTextureWidth;
 	FastNoiseLite heightMap;
 	FastNoiseLite biome;
 public:
-	Chunk(Camera* cam, glm::vec3 pos, int seed);
+	Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint &texture, float &texWidth, float & texHeight);
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
 	void CheckWithNeighborsChunk();
 	Chunk* GetChunkWithPosition(int x, int y, int z);
+	void AddFolliage(int x, int y, int z);
 	void Draw();
+	void DrawTransparent();
 	void AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType);
 	glm::vec3 GetPosition();
 	void SetPosition(glm::vec3 newPos);

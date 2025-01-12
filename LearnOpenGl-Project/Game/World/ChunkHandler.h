@@ -32,6 +32,9 @@ private:
 	int mPreloadChunkFactor;
 	int mRectWidth;
 	int mSeed;
+	GLuint mTexture;
+	float mBlockSize;
+	float mTextureWidth;
 	Camera* mCamera;
 };
 
