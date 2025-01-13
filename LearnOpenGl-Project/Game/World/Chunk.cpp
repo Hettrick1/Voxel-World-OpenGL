@@ -208,10 +208,17 @@ void Chunk::AddFolliage(int x, int y, int z)
     if (mChunk[x][y][z] != nullptr) {
         if ((*mChunk[x][y][z] == 4 || *mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == nullptr) {
             int blockIndex = static_cast<int>(Block::DeadBush);
+            float probability2 = 0.5f;
+            float randomValue2 = static_cast<float>(rand()) / RAND_MAX;
             switch (*mChunk[x][y][z])
             {
             case 1 :
-                blockIndex = static_cast<int>(Block::Dandelion);
+                if (randomValue2 <= probability2) {
+                    blockIndex = static_cast<int>(Block::Dandelion);
+                }
+                else {
+                    blockIndex = static_cast<int>(Block::Tulip);
+                }
                 break;
             case 4:
                 blockIndex = static_cast<int>(Block::DeadBush);
