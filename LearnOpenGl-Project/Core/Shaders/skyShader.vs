@@ -1,4 +1,7 @@
 #version 330 core
+
+// skybox vertex shader
+
 layout (location = 0) in vec3 a_Position;
 
 out vec3 v_TexCoords;

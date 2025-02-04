@@ -3,7 +3,7 @@
 
 Shader::Shader(const char* vertexPath, const char* fragmentPath)
 {
-	// 1. retrieve the vertex/fragment source code from filePath------------------------------
+	// Get the vertex and fragment shader code from the path given
 	std::string vertexCode;
 	std::string fragmentCode;
 	std::ifstream vShaderFile;
@@ -13,17 +13,14 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
 	try
 	{
-		// open files
+		// open files, read it, and convert the stream into string
 		vShaderFile.open(vertexPath);
 		fShaderFile.open(fragmentPath);
 		std::stringstream vShaderStream, fShaderStream;
-		// read file's buffer contents into streams
 		vShaderStream << vShaderFile.rdbuf();
 		fShaderStream << fShaderFile.rdbuf();
-		// close file handlers
 		vShaderFile.close();
 		fShaderFile.close();
-		// convert stream into string
 		vertexCode = vShaderStream.str();
 		fragmentCode = fShaderStream.str();
 	}
@@ -34,7 +31,7 @@ Shader::Shader(const char* vertexPath, const char* fragmentPath)
 	const char* vShaderCode = vertexCode.c_str();
 	const char* fShaderCode = fragmentCode.c_str();
 
-	// 2. compile shaders---------------------------------------------------------------------
+	// Compile shaders
 	unsigned int vertex, fragment;
 	int success;
 	char infoLog[512];

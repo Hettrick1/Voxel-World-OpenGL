@@ -23,6 +23,7 @@ void processInput(GLFWwindow* window);
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
+// create the camera
 Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
 float lastX = DEFAULT_WINDOW_X / 2.0f;
 float lastY = DEFAULT_WINDOW_Y / 2.0f;
@@ -36,7 +37,7 @@ void calculateFPS() {
     double currentTime = glfwGetTime();
     frameCount++;
 
-    // Affiche les FPS toutes les secondes
+    // Print FPS every seconds
     if (currentTime - lastTime >= 1.0) {
         std::cout << "FPS: " << frameCount << std::endl;
         frameCount = 0;
@@ -65,12 +66,13 @@ int main() {
         return -1;
     }  
 
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode !!!!
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode
     glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
 
+    // create the chunkHandler and the skybox -> don't need to be a pointer ?
     ChunkHandler* chunkHandler = new ChunkHandler(16, camera, 12345);
     Sky* skybox = new Sky(camera, camera->GetPosition());
 
@@ -91,6 +93,7 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        // draw skybox first
         skybox->Draw();
         chunkHandler->DrawChunks();
 

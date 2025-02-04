@@ -1,9 +1,9 @@
 #include "VertexBuffer.h"
 
-VertexBuffer::VertexBuffer(GLenum type)
+VertexBuffer::VertexBuffer(GLenum type) // VBO constuctor
 {
 	this->buffer_id = 0;
-	this->type = type;
+	this->type = type; // set the type
 	glGenBuffers(1, &(this->buffer_id));
 }
 

@@ -4,6 +4,9 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+
+// structure to store all the vertex informations, used to store all the chunk vertices position^s and the texture coordinates.
+
 struct i8Vec3
 {
 	uint8_t x;

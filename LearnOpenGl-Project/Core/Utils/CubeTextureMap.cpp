@@ -1,6 +1,6 @@
 #include "CubeTextureMap.h"
 
-void CubeTextureMap::CreateCubeTextureMap(const std::vector<std::string>& cube_face_paths)
+void CubeTextureMap::CreateCubeTextureMap(const std::vector<std::string>& cube_face_paths) // create a cube texture
 {
 	unsigned char* data;
 	int width, height, channels;
@@ -10,14 +10,14 @@ void CubeTextureMap::CreateCubeTextureMap(const std::vector<std::string>& cube_f
 
 	m_CubeFacePaths = cube_face_paths;
 
-	for (int i = 0; i < cube_face_paths.size(); i++)
+	for (int i = 0; i < cube_face_paths.size(); i++) // retrieve the skybox textures
 	{
 		stbi_set_flip_vertically_on_load(false);
 		data = stbi_load(cube_face_paths[i].c_str(), &width, &height, &channels, 0);
 
 		if (data)
 		{
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // create a cubemap from the 6 images 
 			stbi_image_free(data);
 		}
 

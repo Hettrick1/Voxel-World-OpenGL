@@ -1,6 +1,6 @@
 #include "VertexArray.h"
 
-VertexArray::VertexArray()
+VertexArray::VertexArray() // VAO constructor
 {
 	this->array_id = 0;
 	glGenVertexArrays(1, &(this->array_id));

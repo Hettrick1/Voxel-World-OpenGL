@@ -3,13 +3,13 @@
 #include <unordered_set>
 #include <algorithm>
 
-struct ChunkHash {
+struct ChunkHash { // structure to create a hash of a chunk regarding its position
 	size_t operator()(const std::pair<int, int>& pos) const {
 		return std::hash<int>()(pos.first) ^ (std::hash<int>()(pos.second) << 1);
 	}
 };
 
-struct ChunkEqual {
+struct ChunkEqual { // now if two chunk are the same one
 	bool operator()(const std::pair<int, int>& a, const std::pair<int, int>& b) const {
 		return a.first == b.first && a.second == b.second;
 	}
@@ -29,12 +29,13 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     glGenTextures(1, &mTexture);
     glBindTexture(GL_TEXTURE_2D, mTexture);
 
-    // Paramètres de la texture
+    // Texture parameter
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+    // load the texture of the blocks
     int width, height, nrChannels;
     unsigned char* data = stbi_load("Game/Resources/368x16_sheet.png", &width, &height, &nrChannels, 0);
     if (data)
@@ -46,7 +47,6 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     }
     else
     {
-        //std::cerr << "Failed to load texture" << std::endl;
         std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
     }
     stbi_image_free(data);
@@ -66,27 +66,22 @@ ChunkHandler::~ChunkHandler()
 
 void ChunkHandler::GenerateAllChunks()
 {
+    // generate chunks regarding render distance, we can set a preload option to optimize the early game
 	for (int i = -mRenderDistance * mPreloadChunkFactor; i < mRenderDistance * mPreloadChunkFactor; i++) {
 		for (int j = -mRenderDistance * mPreloadChunkFactor; j < mRenderDistance * mPreloadChunkFactor; j++) {
 			std::pair<int, int> chunkPosition = { i, j };
+            // if the chunk is in the render distance
 			if (activeChunks.find(chunkPosition) == activeChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
 				activeChunks.insert(chunkPosition);
 				mActiveChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize));
-				//std::cout << "{ " << i << "," << j << " }" << std::endl;
-				//std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
 			}
+            // Add the chunk into the unactive chunk if we preload the chunk and the chunk is outside the render distance
             else if (unactiveChunks.find(chunkPosition) == unactiveChunks.end()){
                 unactiveChunks.insert(chunkPosition);
                 mOldChunks.push_back(new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize));
-                //std::cout << "{ " << i << "," << j << " }" << std::endl;
-                //std::cout << mActiveChunks.size() + mOldChunks.size() << std::endl;
             }
 		}
 	}
-
-    //std::cout << "Total chunks" << mActiveChunks.size() + mOldChunks.size() << std::endl;
-    //std::cout << "Active chunks" << mActiveChunks.size() << std::endl;
-    //std::cout << "unActive chunks" << mOldChunks.size() << std::endl;
 }
 
 void ChunkHandler::UpdateChunks()
@@ -110,7 +105,7 @@ void ChunkHandler::UpdateChunks()
      // width of the rectangle
     int height = mRenderDistance*2;
 
-    // Génération de chunks orientée selon la direction
+    // Chunk generation regarding the position
     for (int i = -height / 2; i <= height / 2; ++i) {
         for (int j = -mRectWidth / 2; j <= mRectWidth / 2; ++j) {
             // Calcul de la position selon l'angle de la direction
@@ -124,7 +119,7 @@ void ChunkHandler::UpdateChunks()
         }
     }
 
-    // Suppression des vieux chunks
+    // Delete old chunks
     RemoveOldChunk(cameraChunkX, cameraChunkY);
     
 }
@@ -135,15 +130,15 @@ void ChunkHandler::DrawChunks()
 		mActiveChunks[i]->Draw();
 	}
     for (int i = 0; i < mActiveChunks.size(); i++) {
-        // Calcul de la position du chunk
+        // Get the chunk position
         glm::vec3 chunkPos = mActiveChunks[i]->GetPosition();
 
-        // Calcul de la distance entre la caméra et le chunk
+        // Distance between the chunk and the camera
         float distance = glm::length(chunkPos - glm::vec3(mCamera->GetPosition().x, mCamera->GetPosition().y, 0));
 
         distance /= 16;
 
-        // Si le chunk est transparent et proche de la caméra, on l'affiche
+        // This is the folliage render distance, if the distance between the chunk and the camera is smaller than 8 we draw the folliage
         if (distance < 8) {
             mActiveChunks[i]->DrawTransparent();
         }
@@ -162,6 +157,7 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
         activeChunks.insert(newChunkPosition);
         mActiveChunks.push_back(newChunk);
     }
+    // if the chunk already exists we just retreve is from the oldChunk vector
     else if (unactiveChunks.find(newChunkPosition) != unactiveChunks.end()) {
         auto it = std::find_if(mOldChunks.begin(), mOldChunks.end(),
             [chunkX, chunkY](Chunk* chunk) {
@@ -180,6 +176,8 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
 
 void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
 {
+    // unload the chunks if the camera is too far away
+    // still need to delete them from the memory when we are really far away from them
     for (auto it = mActiveChunks.begin(); it != mActiveChunks.end();) {
         glm::vec3 pos = (*it)->GetPosition();
         int posChunkX = static_cast<int>(pos.x / 16);

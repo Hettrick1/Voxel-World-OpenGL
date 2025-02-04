@@ -16,7 +16,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
     biome.SetSeed(seed);
 
-    // Initialisation de mChunk avec des nullptr ou autres valeurs par défaut
+    // initialize mChunk with the block type. -1 is air.
     int count = 0;
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
@@ -25,6 +25,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
             float globalX = mPosition.x + x;
             float globalY = mPosition.y + y;
 
+            // retrieve the chunk information from the biome and the heightmap noises
             float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
             float heightBiome = biome.GetNoise(globalX * (scale / 20), globalY * (scale / 20));
             float heightMultiplier = (heightBiome + 1.0f) / 4;
@@ -55,19 +56,20 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 CheckForNeighbors(x, y, z);
-                // Add folliage
-                float probability = 0.01f;
+                // Add folliage 1% probability
+                float folliageProbability = 0.01f;
 
                 // random number between 0 and 1
-                float randomValue = static_cast<float>(rand()) / RAND_MAX;
+                float folliageRandomValue = static_cast<float>(rand()) / RAND_MAX;
 
-                if (randomValue < probability) {
+                if (folliageRandomValue < folliageProbability) {
                     AddFolliage(x, y, z); 
                 }
             }
         }
     }
 
+    // bind the VAOs and send all the vertex infos to the shaders
     vao.Bind(); 
     vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW); 
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
@@ -88,22 +90,22 @@ Chunk::~Chunk()
 
 void Chunk::CheckForNeighbors(int x, int y, int z)
 {
+    // if the block we are cheking is air, stop checking
     if (mChunk[x][y][z] == -1) return;
 
     glm::ivec3 directions[6] = {
-        {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
-        {0, 1, 0}, {0, -1, 0},  // Avant, Arrière
-        {0, 0, 1}, {0, 0, -1}, // Haut, Bas
+        {1, 0, 0}, {-1, 0, 0},  // Right, Left
+        {0, 1, 0}, {0, -1, 0},  // Forward, Backward
+        {0, 0, 1}, {0, 0, -1}, // Top, Bottom
     };
 
     for (int i = 0; i < 6; i++) {
         glm::ivec3 neighborPos = glm::ivec3(x, y, z) + directions[i];
         int nx = neighborPos.x, ny = neighborPos.y, nz = neighborPos.z;
 
-        // Vérifier les limites du chunk
+        // If we are not at the chunk bounds and the block in the selected direction is air we add a face
         if (nx >= 0 && nx < CHUNK_SIZE_X && ny >= 0 && ny < CHUNK_SIZE_Y && nz >= 0 && nz < CHUNK_SIZE_Z) {
             if (mChunk[nx][ny][nz] == -1) {
-                // Ajouter les 6 sommets nécessaires pour dessiner une face
                 AddFace(x, y, z, directions[i], mChunk[x][y][z]);
             }
         }
@@ -112,17 +114,18 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
 
 void Chunk::CheckWithNeighborsChunk()
 {
+    // here we check if we add to add a face between chunks
     glm::ivec3 directions[4] = {
-        {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
-        {0, 1, 0}, {0, -1, 0},  // Avant, Arrière
+        {1, 0, 0}, {-1, 0, 0},  // Right, Left
+        {0, 1, 0}, {0, -1, 0},  // Forward, Backward
     };
 
     for (int i = 0; i < 4; i++) {
         int directionIndex = -1;
-        if (directions[i] == glm::ivec3(1, 0, 0)) directionIndex = 0;   // Droite
-        if (directions[i] == glm::ivec3(-1, 0, 0)) directionIndex = 1;  // Gauche
-        if (directions[i] == glm::ivec3(0, 1, 0)) directionIndex = 2;   // Avant
-        if (directions[i] == glm::ivec3(0, -1, 0)) directionIndex = 3;  // Arrière
+        if (directions[i] == glm::ivec3(1, 0, 0)) directionIndex = 0;   // Right
+        if (directions[i] == glm::ivec3(-1, 0, 0)) directionIndex = 1;  // Left
+        if (directions[i] == glm::ivec3(0, 1, 0)) directionIndex = 2;   // Forward
+        if (directions[i] == glm::ivec3(0, -1, 0)) directionIndex = 3;  // Backward
         
         int oldX = mPosition.x;
         int oldY = mPosition.y;
@@ -131,7 +134,7 @@ void Chunk::CheckWithNeighborsChunk()
         int x = 0;
         int y = 0;
 
-        for (int j = 0; j < 16; j++) {
+        for (int j = 0; j < 16; j++) { // Check only the border of each chunks
             switch (directionIndex)
             {
             case 0:
@@ -169,6 +172,7 @@ void Chunk::CheckWithNeighborsChunk()
             }
             float scale = 2.0f;
 
+            // Get the noise value between two chunks to know whether or not to add faces
             float heightValue = heightMap.GetNoise(oldX * scale, oldY * scale); 
             float heightBiome = biome.GetNoise(oldX * (scale / 20), oldY * (scale / 20));
             float heightMultiplier = (heightBiome + 1.0f) / 4;
@@ -180,7 +184,7 @@ void Chunk::CheckWithNeighborsChunk()
             int newHeight = static_cast<int>((newHeightValue + 1.0f) * newHeightMultiplier * CHUNK_SIZE_Z);
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                // Vérification finale avant l'accès
+                // If we have to add a face then we add it
                 if (height > newHeight && z <= height && z > newHeight) {
                     if (mChunk[x][y][z] != -1) {
                         AddFace(x, y, z, directions[i], mChunk[x][y][z]);
@@ -193,21 +197,21 @@ void Chunk::CheckWithNeighborsChunk()
 
 void Chunk::AddFolliage(int x, int y, int z)
 {
+    // a folliage is made of two planes crossing in the center. 
     static const glm::vec3 vertexOffsets[2][4] = {
-         {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-         // Face diagonale 2 (perpendiculaire à la première, croisée, rotated around Z)
-         {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
+         {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}, // plane 1
+         {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}, // plane 2
     };
 
-    if (mChunk[x][y][z] != -1) {
+    if (mChunk[x][y][z] != -1) { // add only if the current block is air
         if ((mChunk[x][y][z] == 4 || mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1) {
             int blockIndex = static_cast<int>(Block::DeadBush);
-            float probability2 = 0.5f;
-            float randomValue2 = static_cast<float>(rand()) / RAND_MAX;
+            float TypeProbability = 0.5f;
+            float TypeRandomValue = static_cast<float>(rand()) / RAND_MAX; // random between Dandelion or Tulip
             switch (mChunk[x][y][z])
             {
             case 1 :
-                if (randomValue2 <= probability2) {
+                if (TypeRandomValue <= TypeProbability) {
                     blockIndex = static_cast<int>(Block::Dandelion);
                 }
                 else {
@@ -228,6 +232,7 @@ void Chunk::AddFolliage(int x, int y, int z)
                 {uMax, 1.0f},
                 {uMax, 0.0f},
             };
+            // add all the vertices for one face
             for (int i = 0; i < 2; i++){
             const glm::vec3* offsets = vertexOffsets[i];
             mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
@@ -268,29 +273,30 @@ void Chunk::AddFolliage(int x, int y, int z)
 void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
 {
     static const glm::vec3 vertexOffsets[6][4] = {
-        // Face droite (+X)
+        // Right Face (+X)
         {{1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}},
-        // Face gauche (-X)
+        // Left Face (-X)
         {{0, 0, 0}, {0, 1, 0}, {0, 1, 1}, {0, 0, 1}},
-        // Face derrière (+Y)
+        // Backward Face (+Y)
         {{0, 1, 0}, {1, 1, 0}, {1, 1, 1}, {0, 1, 1}},
-        // Face devant (-Y)
+        // Forward Face (-Y)
         {{0, 0, 0}, {1, 0, 0}, {1, 0, 1}, {0, 0, 1}},
-        // Face haut (+Z)
+        // Top Face (+Z)
         {{0, 0, 1}, {1, 0, 1}, {1, 1, 1}, {0, 1, 1}},
-        // Face bas (-Z)
+        // Bottom Face (-Z)
         {{0, 0, 0}, {0, 1, 0}, {1, 1, 0}, {1, 0, 0}}
     };
 
     int faceIndex = -1;
-    if (direction == glm::ivec3(1, 0, 0)) faceIndex = 0;   // Droite
-    if (direction == glm::ivec3(-1, 0, 0)) faceIndex = 1;  // Gauche
-    if (direction == glm::ivec3(0, 1, 0)) faceIndex = 2;   // Avant
-    if (direction == glm::ivec3(0, -1, 0)) faceIndex = 3;  // Arrière
-    if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Haut
-    if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Bas
+    if (direction == glm::ivec3(1, 0, 0)) faceIndex = 0;   // Right
+    if (direction == glm::ivec3(-1, 0, 0)) faceIndex = 1;  // Left
+    if (direction == glm::ivec3(0, 1, 0)) faceIndex = 2;   // Backward
+    if (direction == glm::ivec3(0, -1, 0)) faceIndex = 3;  // Forward
+    if (direction == glm::ivec3(0, 0, 1)) faceIndex = 4;   // Top
+    if (direction == glm::ivec3(0, 0, -1)) faceIndex = 5;  // Bottom
 
     int blockIndex = 0;
+    // the blockIndex is used to know which texture to use
     switch (blockType)
     {
     case 1 :
@@ -352,7 +358,7 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
     if (faceIndex >= 0) {
         const glm::vec3* offsets = vertexOffsets[faceIndex];
   
-        // Ajouter les 6 sommets
+        // Add the 6 vertices of a face into the vertex vector
         mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
                                              static_cast<uint8_t>(z + offsets[0].z)},
@@ -398,23 +404,15 @@ void Chunk::SetPosition(glm::vec3 newPos)
     mPosition.z = 0;
 }
 
-Chunk* Chunk::GetChunkWithPosition(int x, int y, int z)
-{
-	if (x == mPosition.x / CHUNK_SIZE_X && y == 0 && z == mPosition.z / CHUNK_SIZE_Z) {
-		return this;
-	}
-	return nullptr;
-}
-
 void Chunk::Draw()
 { 
     if (mAllVertices.size() > 0) {
-        // Charger le shader et transmettre les matrices
+        // Use shader and send all the matrices
         mShader->Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
-        mShader->SetInt("u_Texture", 0);
+        mShader->SetInt("u_Texture", 0); // send the texture
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
         glm::mat4 view = mCamera->GetViewMatrix(); 
@@ -422,16 +420,17 @@ void Chunk::Draw()
         glm::mat4 mvp = projection * view * model; 
 
         mShader->SetMat4("u_MVP", mvp);
-        // Dessiner
+        // Draw the chunk
         vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, mAllVertices.size());
         vao.Unbind();
     }
 }
+
 void Chunk::DrawTransparent()
 {
     if (mTransparentVertices.size() > 0) {
-        glEnable(GL_BLEND);
+        glEnable(GL_BLEND); // use the transparence
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         mShader->Use();

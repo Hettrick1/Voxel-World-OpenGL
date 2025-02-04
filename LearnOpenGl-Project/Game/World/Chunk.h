@@ -48,7 +48,6 @@ public:
 	~Chunk();
 	void CheckForNeighbors(int x, int y, int z);
 	void CheckWithNeighborsChunk();
-	Chunk* GetChunkWithPosition(int x, int y, int z);
 	void AddFolliage(int x, int y, int z);
 	void Draw();
 	void DrawTransparent();

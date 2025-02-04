@@ -5,6 +5,7 @@ Sky::Sky(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     mCamera = cam;
     mPosition = pos;
 
+    // create a cube map
     m_CubeMap.CreateCubeTextureMap({
         "Game/Resources/DAY_CLOUDS_S.jpg",
         "Game/Resources/DAY_CLOUDS_N.jpg",
@@ -17,6 +18,7 @@ Sky::Sky(Camera* cam, glm::vec3 pos) : vbo(GL_ARRAY_BUFFER)
     mShader = new Shader("Core/Shaders/skyShader.vs", "Core/Shaders/skyShader.fs");
     mShader->Use();
 
+    // create a cube for the sky box
     mAllVertices = {
         -1.0f,  1.0f, -1.0f,
         -1.0f, -1.0f, -1.0f,
@@ -73,12 +75,13 @@ Sky::~Sky()
 
 void Sky::Draw()
 {
+    // draw the skybox
     glDepthMask(GL_FALSE);
     mShader->Use();
 
     glm::mat4 model = glm::translate(glm::mat4(1.0f), glm::vec3(0, 0.2, 0));
-    glm::mat4 view = glm::mat4(glm::mat3(mCamera->GetViewMatrix()));;
-    view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 view = glm::mat4(glm::mat3(mCamera->GetViewMatrix()));
+    view = glm::rotate(view, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f)); // rotate the cube to be in the right orientation
     glm::mat4 projection = mCamera->GetProjectionMatrix();
     glm::mat4 mvp = projection * view * model;
 
