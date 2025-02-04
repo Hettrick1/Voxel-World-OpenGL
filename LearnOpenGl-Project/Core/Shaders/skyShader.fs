@@ -1,5 +1,7 @@
 #version 330 core
 
+// skybox fragment shader
+
 in vec3 v_TexCoords;
 
 uniform samplerCube u_Skybox;

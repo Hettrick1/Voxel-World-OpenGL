@@ -1,6 +1,6 @@
 #include "IndexBuffer.h"
 
-IndexBuffer::IndexBuffer()
+IndexBuffer::IndexBuffer() // IBO constructor and bind
 {
 	this->buffer_id = 0;
 	this->type = GL_ELEMENT_ARRAY_BUFFER;
