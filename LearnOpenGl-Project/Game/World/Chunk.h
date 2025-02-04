@@ -28,7 +28,7 @@
 class Chunk
 {
 private:
-	GLuint* mChunk[16][16][200] = { nullptr };
+	int8_t mChunk[16][16][200] = { -1 };
 	Camera* mCamera;
 	Shader* mShader;
 	GLuint mTexture;
@@ -52,7 +52,7 @@ public:
 	void AddFolliage(int x, int y, int z);
 	void Draw();
 	void DrawTransparent();
-	void AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType);
+	void AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType);
 	glm::vec3 GetPosition();
 	void SetPosition(glm::vec3 newPos);
 };

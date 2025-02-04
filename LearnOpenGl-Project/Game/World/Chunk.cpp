@@ -32,16 +32,16 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 if (z < height - 2) {
-                    mChunk[x][y][z] = new GLuint(3); // stone
+                    mChunk[x][y][z] = 3; // stone
                 }
                 else if (z >= height - 2 && z < height) {
-                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? new GLuint(4) : new GLuint(2); // sand or dirt
+                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? 4 : 2; // sand or dirt
                 }
                 else if (z == height) {
-                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? new GLuint(4) : new GLuint(1); // sand or grass
+                    mChunk[x][y][z] = (heightMultiplier < 0.1f) ? 4 : 1; // sand or grass
                 }
                 else {
-                    mChunk[x][y][z] = nullptr;
+                    mChunk[x][y][z] = -1; // air
                 }
             }
         }
@@ -83,18 +83,12 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
 Chunk::~Chunk()
 {
-    for (int x = 0; x < CHUNK_SIZE_X; ++x) {
-        for (int y = 0; y < CHUNK_SIZE_Y; ++y) {
-            for (int z = 0; z < CHUNK_SIZE_Z; ++z) {
-                delete mChunk[x][y][z];  // Supprimer les blocs alloués
-            }
-        }
-    }
+
 }
 
 void Chunk::CheckForNeighbors(int x, int y, int z)
 {
-    if (mChunk[x][y][z] == nullptr) return;
+    if (mChunk[x][y][z] == -1) return;
 
     glm::ivec3 directions[6] = {
         {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
@@ -108,9 +102,9 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
 
         // Vérifier les limites du chunk
         if (nx >= 0 && nx < CHUNK_SIZE_X && ny >= 0 && ny < CHUNK_SIZE_Y && nz >= 0 && nz < CHUNK_SIZE_Z) {
-            if (mChunk[nx][ny][nz] == nullptr) {
+            if (mChunk[nx][ny][nz] == -1) {
                 // Ajouter les 6 sommets nécessaires pour dessiner une face
-                AddFace(x, y, z, directions[i], *mChunk[x][y][z]);
+                AddFace(x, y, z, directions[i], mChunk[x][y][z]);
             }
         }
     }
@@ -188,8 +182,8 @@ void Chunk::CheckWithNeighborsChunk()
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
                 // Vérification finale avant l'accès
                 if (height > newHeight && z <= height && z > newHeight) {
-                    if (mChunk[x][y][z] != nullptr) {
-                        AddFace(x, y, z, directions[i], *mChunk[x][y][z]);
+                    if (mChunk[x][y][z] != -1) {
+                        AddFace(x, y, z, directions[i], mChunk[x][y][z]);
                     }
                 }
             }
@@ -205,12 +199,12 @@ void Chunk::AddFolliage(int x, int y, int z)
          {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}},
     };
 
-    if (mChunk[x][y][z] != nullptr) {
-        if ((*mChunk[x][y][z] == 4 || *mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == nullptr) {
+    if (mChunk[x][y][z] != -1) {
+        if ((mChunk[x][y][z] == 4 || mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1) {
             int blockIndex = static_cast<int>(Block::DeadBush);
             float probability2 = 0.5f;
             float randomValue2 = static_cast<float>(rand()) / RAND_MAX;
-            switch (*mChunk[x][y][z])
+            switch (mChunk[x][y][z])
             {
             case 1 :
                 if (randomValue2 <= probability2) {
@@ -271,7 +265,7 @@ void Chunk::AddFolliage(int x, int y, int z)
     }
 }
 
-void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, GLuint blockType)
+void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
 {
     static const glm::vec3 vertexOffsets[6][4] = {
         // Face droite (+X)
