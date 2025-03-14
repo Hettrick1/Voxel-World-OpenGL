@@ -215,7 +215,7 @@ void Chunk::AddFolliage(int x, int y, int z)
                     blockIndex = static_cast<int>(Block::Dandelion);
                 }
                 else {
-                    blockIndex = static_cast<int>(Block::Tulip);
+                    blockIndex = static_cast<int>(Block::Grass);
                 }
                 break;
             case 4:
@@ -430,8 +430,8 @@ void Chunk::Draw()
 void Chunk::DrawTransparent()
 {
     if (mTransparentVertices.size() > 0) {
-        glEnable(GL_BLEND); // use the transparence
-        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        //glEnable(GL_BLEND); // use the transparence
+        //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         mShader->Use();
 
@@ -448,6 +448,6 @@ void Chunk::DrawTransparent()
         transparentVao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, mTransparentVertices.size());
         transparentVao.Unbind();
-        glDisable(GL_BLEND);
+        //glDisable(GL_BLEND);
     }
 }
