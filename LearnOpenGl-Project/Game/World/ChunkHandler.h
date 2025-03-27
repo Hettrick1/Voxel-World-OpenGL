@@ -12,6 +12,20 @@
 
 #include <iostream>
 #include <vector>
+#include <unordered_map>
+#include <algorithm>
+
+struct ChunkHash { // structure to create a hash of a chunk regarding its position
+	size_t operator()(const std::pair<int, int>& pos) const {
+		return std::hash<int>()(pos.first) ^ (std::hash<int>()(pos.second) << 1);
+	}
+};
+
+struct ChunkEqual { // now if two chunk are the same one
+	bool operator()(const std::pair<int, int>& a, const std::pair<int, int>& b) const {
+		return a.first == b.first && a.second == b.second;
+	}
+};
 
 class ChunkHandler
 {
@@ -22,11 +36,10 @@ public:
 	void GenerateAllChunks();
 	void UpdateChunks();
 	void DrawChunks();
+	bool IsChunkInFrustum(const glm::vec3& chunkPosition);
 	void GenerateNewChunk(int chunkX, int chunkY);
 	void RemoveOldChunk(int cameraChunkX, int cameraChunkY);
 private:
-	std::vector<Chunk*> mActiveChunks;
-	std::vector<Chunk*> mOldChunks;
 	int mRenderDistance;
 	glm::vec3 mPreviousCameraPosition;
 	int mPreloadChunkFactor;
@@ -36,5 +49,7 @@ private:
 	float mBlockSize;
 	float mTextureWidth;
 	Camera* mCamera;
+	std::unordered_map<std::pair<int, int>, Chunk*, ChunkHash, ChunkEqual> mActiveChunks;
+	std::unordered_map<std::pair<int, int>, Chunk*, ChunkHash, ChunkEqual> mUnactiveChunks;
 };
 
