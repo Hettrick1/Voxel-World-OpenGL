@@ -86,7 +86,7 @@ int main() {
 
     while (!glfwWindowShouldClose(window)) {
 
-        float currentFrame = glfwGetTime();
+        float currentFrame = static_cast<float>(glfwGetTime());
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
@@ -166,6 +166,6 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     glfwGetWindowSize(window, &width, &height);
     glfwSetWindowAspectRatio(window, width, height);
-    camera->SetCameraSize(width, height);
+    camera->SetCameraSize(static_cast<float>(width), static_cast<float>(height));
     glViewport(0, 0, width, height);
 }

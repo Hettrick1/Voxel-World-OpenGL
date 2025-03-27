@@ -28,8 +28,8 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     unsigned char* data = stbi_load("Game/Resources/368x16_sheet.png", &width, &height, &nrChannels, 0);
     if (data)
     {
-        mBlockSize = height;
-        mTextureWidth = width;
+        mBlockSize = static_cast<float>(height);
+        mTextureWidth = static_cast<float>(width);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
     }
