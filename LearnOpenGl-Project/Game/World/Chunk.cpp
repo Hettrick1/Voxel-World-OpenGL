@@ -49,13 +49,13 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     }
 
     // Calculate visible faces between chunks
-    CheckWithNeighborsChunk();
+    CheckWithNeighborChunk();
 
     // Calculate visible faces
     for (int x = 0; x < CHUNK_SIZE_X; x++) {
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
-                CheckForNeighbors(x, y, z);
+                CheckForNeighborBlock(x, y, z);
                 // Add folliage 1% probability
                 float folliageProbability = 0.01f;
 
@@ -63,7 +63,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                 float folliageRandomValue = static_cast<float>(rand()) / RAND_MAX;
 
                 if (folliageRandomValue < folliageProbability) {
-                    AddFolliage(x, y, z); 
+                    AddFolliage(x, y, z, (folliageRandomValue * 100));
                 }
             }
         }
@@ -88,7 +88,7 @@ Chunk::~Chunk()
 
 }
 
-void Chunk::CheckForNeighbors(int x, int y, int z)
+void Chunk::CheckForNeighborBlock(int x, int y, int z)
 {
     // if the block we are cheking is air, stop checking
     if (mChunk[x][y][z] == -1) return;
@@ -112,7 +112,7 @@ void Chunk::CheckForNeighbors(int x, int y, int z)
     }
 }
 
-void Chunk::CheckWithNeighborsChunk()
+void Chunk::CheckWithNeighborChunk()
 {
     // here we check if we add to add a face between chunks
     glm::ivec3 directions[4] = {
@@ -195,7 +195,7 @@ void Chunk::CheckWithNeighborsChunk()
     }
 }
 
-void Chunk::AddFolliage(int x, int y, int z)
+void Chunk::AddFolliage(int x, int y, int z, float probability)
 {
     // a folliage is made of two planes crossing in the center. 
     static const glm::vec3 vertexOffsets[2][4] = {
@@ -206,16 +206,20 @@ void Chunk::AddFolliage(int x, int y, int z)
     if (mChunk[x][y][z] != -1) { // add only if the current block is air
         if ((mChunk[x][y][z] == 4 || mChunk[x][y][z] == 1) && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1) {
             int blockIndex = static_cast<int>(Block::DeadBush);
-            float TypeProbability = 0.5f;
-            float TypeRandomValue = static_cast<float>(rand()) / RAND_MAX; // random between Dandelion or Tulip
             switch (mChunk[x][y][z])
             {
             case 1 :
-                if (TypeRandomValue <= TypeProbability) {
+                if (probability <= 0.3) {
                     blockIndex = static_cast<int>(Block::Dandelion);
+                    break;
                 }
-                else {
+                else  if (probability <= 0.6) {
                     blockIndex = static_cast<int>(Block::Grass);
+                    break;
+                }
+                else  if (probability <= 1.0) {
+                    blockIndex = static_cast<int>(Block::Tulip);
+                    break;
                 }
                 break;
             case 4:
@@ -404,7 +408,7 @@ void Chunk::SetPosition(glm::vec3 newPos)
     mPosition.z = 0;
 }
 
-void Chunk::Draw()
+void Chunk::DrawChunkMesh()
 { 
     if (mAllVertices.size() > 0) {
         // Use shader and send all the matrices
@@ -426,7 +430,7 @@ void Chunk::Draw()
     }
 }
 
-void Chunk::DrawTransparent()
+void Chunk::DrawFolliageMesh()
 {
     if (mTransparentVertices.size() > 0) {
 

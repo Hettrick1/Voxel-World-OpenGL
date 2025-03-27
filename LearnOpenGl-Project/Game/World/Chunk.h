@@ -46,11 +46,11 @@ private:
 public:
 	Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint &texture, float &texWidth, float & texHeight);
 	~Chunk();
-	void CheckForNeighbors(int x, int y, int z);
-	void CheckWithNeighborsChunk();
-	void AddFolliage(int x, int y, int z);
-	void Draw();
-	void DrawTransparent();
+	void CheckForNeighborBlock(int x, int y, int z);
+	void CheckWithNeighborChunk();
+	void AddFolliage(int x, int y, int z, float probability);
+	void DrawChunkMesh();
+	void DrawFolliageMesh();
 	void AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType);
 	glm::vec3 GetPosition();
 	void SetPosition(glm::vec3 newPos);

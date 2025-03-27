@@ -113,7 +113,7 @@ void ChunkHandler::DrawChunks()
 {
     for (auto& pair : mActiveChunks) {
         if (IsChunkInFrustum(pair.second->GetPosition())) {
-            pair.second->Draw();
+            pair.second->DrawChunkMesh();
         }
         // Get the chunk position
         glm::vec3 chunkPos = pair.second->GetPosition();
@@ -125,7 +125,7 @@ void ChunkHandler::DrawChunks()
 
         // This is the folliage render distance, if the distance between the chunk and the camera is smaller than 8 we draw the folliage
         if (distance < 8 && IsChunkInFrustum(chunkPos)) {
-            pair.second->DrawTransparent();
+            pair.second->DrawFolliageMesh();
         }
     }
 }
