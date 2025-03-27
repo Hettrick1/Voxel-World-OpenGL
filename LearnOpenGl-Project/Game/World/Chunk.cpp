@@ -412,7 +412,6 @@ void Chunk::Draw()
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
-        mShader->SetInt("u_Texture", 0); // send the texture
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
         glm::mat4 view = mCamera->GetViewMatrix(); 
@@ -430,14 +429,11 @@ void Chunk::Draw()
 void Chunk::DrawTransparent()
 {
     if (mTransparentVertices.size() > 0) {
-        //glEnable(GL_BLEND); // use the transparence
-        //glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
 
         mShader->Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
-        mShader->SetInt("u_Texture", 0);
 
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);
         glm::mat4 view = mCamera->GetViewMatrix();
@@ -448,6 +444,5 @@ void Chunk::DrawTransparent()
         transparentVao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, mTransparentVertices.size());
         transparentVao.Unbind();
-        //glDisable(GL_BLEND);
     }
 }

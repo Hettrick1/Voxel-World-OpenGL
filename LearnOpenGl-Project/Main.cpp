@@ -11,6 +11,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include <chrono>
 #include <iostream>
 
 #include "Core/Utils/Defs.h"
@@ -20,8 +21,7 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
+
 
 // create the camera
 Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
@@ -29,17 +29,23 @@ float lastX = DEFAULT_WINDOW_X / 2.0f;
 float lastY = DEFAULT_WINDOW_Y / 2.0f;
 bool firstMouse = true;
 
+float deltaTime = 0.0f;
+float lastFrame = 0.0f;
 int frameCount = 0;
-double lastTime = 0.0;
+std::chrono::time_point<std::chrono::system_clock> lastTime = std::chrono::system_clock::now();
 
 
-void calculateFPS() {
-    double currentTime = glfwGetTime();
+void calculateFPS(GLFWwindow* window) {
+    auto currentTime = std::chrono::system_clock::now();
+
     frameCount++;
 
+    std::chrono::duration<double> elapsedTime = currentTime - lastTime;
+
     // Print FPS every seconds
-    if (currentTime - lastTime >= 1.0) {
+    if (elapsedTime.count() >= 1.0) {
         std::cout << "FPS: " << frameCount << std::endl;
+        glfwSetWindowTitle(window, ("FPS : " + std::to_string(frameCount)).c_str());
         frameCount = 0;
         lastTime = currentTime;
     }
@@ -59,6 +65,8 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
+    glfwSwapInterval(0);
+
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -82,7 +90,7 @@ int main() {
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        calculateFPS();
+        calculateFPS(window);
 
         //inputs
         processInput(window);
@@ -102,6 +110,9 @@ int main() {
         glfwPollEvents();
     }
     glfwTerminate();
+    delete camera;
+    delete chunkHandler;
+    delete skybox;
     return 0;
 }
 
