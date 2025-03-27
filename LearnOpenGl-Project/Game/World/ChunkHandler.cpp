@@ -89,7 +89,7 @@ void ChunkHandler::UpdateChunks()
     direction = glm::normalize(direction);
     float angle = atan2(direction.y, direction.x);
 
-     // width of the rectangle
+    // width of the rectangle
     int height = mRenderDistance*2;
 
     // Chunk generation regarding the position
