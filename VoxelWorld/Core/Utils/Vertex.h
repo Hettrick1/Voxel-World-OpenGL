@@ -16,12 +16,12 @@ struct i8Vec3
 	i8Vec3 operator=(const glm::vec3& vec)
 	{
 		assert(floor(vec.x) <= CHUNK_SIZE_X);
-		assert(floor(vec.y) < 255);
+		assert(floor(vec.y) <= CHUNK_SIZE_Y);
 		assert(floor(vec.z) <= CHUNK_SIZE_Z);
 
-		x = floor(vec.x);
-		y = floor(vec.y);
-		z = floor(vec.z);
+		x = static_cast<int>(floor(vec.x));
+		y = static_cast<int>(floor(vec.y));
+		z = static_cast<int>(floor(vec.z));
 
 		return *this;
 	}

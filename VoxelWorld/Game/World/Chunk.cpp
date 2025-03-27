@@ -127,10 +127,10 @@ void Chunk::CheckWithNeighborChunk()
         if (directions[i] == glm::ivec3(0, 1, 0)) directionIndex = 2;   // Forward
         if (directions[i] == glm::ivec3(0, -1, 0)) directionIndex = 3;  // Backward
         
-        int oldX = mPosition.x;
-        int oldY = mPosition.y;
-        int newX = mPosition.x;
-        int newY = mPosition.y;
+        int oldX = static_cast<int>(mPosition.x);
+        int oldY = static_cast<int>(mPosition.y);
+        int newX = static_cast<int>(mPosition.x);
+        int newY = static_cast<int>(mPosition.y);
         int x = 0;
         int y = 0;
 
@@ -138,34 +138,34 @@ void Chunk::CheckWithNeighborChunk()
             switch (directionIndex)
             {
             case 0:
-                oldX = mPosition.x + 15;
-                oldY = mPosition.y + j;
-                newX = mPosition.x + 16;
-                newY = mPosition.y + j;
+                oldX = static_cast<int>(mPosition.x) + 15;
+                oldY = static_cast<int>(mPosition.y) + j;
+                newX = static_cast<int>(mPosition.x) + 16;
+                newY = static_cast<int>(mPosition.y) + j;
                 x = 15;
                 y = j;
                 break;
             case 1:
-                oldX = mPosition.x;
-                oldY = mPosition.y + j;
-                newX = mPosition.x -1;
-                newY = mPosition.y + j;
+                oldX = static_cast<int>(mPosition.x);
+                oldY = static_cast<int>(mPosition.y) + j;
+                newX = static_cast<int>(mPosition.x) -1;
+                newY = static_cast<int>(mPosition.y) + j;
                 x = 0;
                 y = j;
                 break;
             case 2:
-                oldX = mPosition.x + j;
-                oldY = mPosition.y + 15;
-                newX = mPosition.x + j;
-                newY = mPosition.y + 16;
+                oldX = static_cast<int>(mPosition.x) + j;
+                oldY = static_cast<int>(mPosition.y) + 15;
+                newX = static_cast<int>(mPosition.x) + j;
+                newY = static_cast<int>(mPosition.y) + 16;
                 x = j;
                 y = 15;
                 break;
             case 3:
-                oldX = mPosition.x + j;
-                oldY = mPosition.y;
-                newX = mPosition.x + j;
-                newY = mPosition.y - 1;
+                oldX = static_cast<int>(mPosition.x) + j;
+                oldY = static_cast<int>(mPosition.y);
+                newX = static_cast<int>(mPosition.x) + j;
+                newY = static_cast<int>(mPosition.y) - 1;
                 x = j;
                 y = 0;
                 break;
@@ -425,7 +425,7 @@ void Chunk::DrawChunkMesh()
         mShader->SetMat4("u_MVP", mvp);
         // Draw the chunk
         vao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, mAllVertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mAllVertices.size()));
         vao.Unbind();
     }
 }
@@ -446,7 +446,7 @@ void Chunk::DrawFolliageMesh()
 
         mShader->SetMat4("u_MVP", mvp);
         transparentVao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, mTransparentVertices.size());
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mTransparentVertices.size()));
         transparentVao.Unbind();
     }
 }
