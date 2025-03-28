@@ -2,6 +2,7 @@
 #include "World/Chunk.h"
 #include "World/Enums/BlockTextureEnum.h"
 
+// small class to get all the vertices to create a cactus
 class Cactus
 {
 public:

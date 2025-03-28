@@ -3,13 +3,13 @@
 Cactus::Cactus(glm::vec3 initialPos, float blockSize, float textureWidth, float heightProbability)
     : mTextureWidth(textureWidth), mBlockSize(blockSize)
 {
-    glm::vec3 directionsBottom[4] = {
+    glm::vec3 directionsBottom[4] = { 
         {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}
     };
     glm::vec3 directionsTop[5] = {
-        {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}
+        {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1} // is it's the top block add the top face
     };
-    if (heightProbability <= 0.5)
+    if (heightProbability <= 0.5) // probability to spawn either a cactus of 2 blocks or 3
     {
         mCactusHeight = 3;
     }
