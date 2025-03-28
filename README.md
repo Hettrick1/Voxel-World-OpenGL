@@ -12,3 +12,5 @@ Ce projet en C++ avec OpenGL, GLFW3 et Glad recrée un terrain voxel procédural
 - **Foliage** 🌿 : Un peu de végétation est ajoutée au terrain pour rendre l'environnement plus vivant.
 - **Optimisation des Meshs** 🏗️ : Chaque chunk utilise un seul mesh, et seules les faces visibles sont générées, réduisant ainsi le nombre de vertices et améliorant les performances.
 
+![frame_0_21_38f](https://github.com/user-attachments/assets/f036406a-a9c0-432a-8808-8ad177eb6853)
+![frame_0_13_38f](https://github.com/user-attachments/assets/92e6703f-29cc-4acb-be53-fa744eecd13a)
