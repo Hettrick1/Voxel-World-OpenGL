@@ -33,8 +33,8 @@ private:
 	Shader* mShader;
 	GLuint mTexture;
 	glm::vec3 mPosition;
-	std::vector<Vertex> mAllVertices;
-	std::vector<Vertex> mTransparentVertices;
+	std::vector<Vertex> mChunkVertices;
+	std::vector<Vertex> mFolliageVertices;
 	VertexArray vao;
 	VertexBuffer vbo;
 	VertexArray transparentVao;

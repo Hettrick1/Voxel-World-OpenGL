@@ -155,6 +155,7 @@
     <ClCompile Include="Game\World\ChunkHandler.cpp" />
     <ClCompile Include="Game\World\Chunk.cpp" />
     <ClCompile Include="Core\OpenGL\IndexBuffer.cpp" />
+    <ClCompile Include="Game\World\Structure\Cactus.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Core\OpenGL\Shader.cpp" />
     <ClCompile Include="Core\OpenGL\imageLoader\stb_image.cpp" />
@@ -177,6 +178,8 @@
     <ClInclude Include="Core\OpenGL\IndexBuffer.h" />
     <ClInclude Include="Game\World\Enums\BlockTextureEnum.h" />
     <ClInclude Include="Game\World\Sky.h" />
+    <ClInclude Include="Game\World\Structure\Cactus.h" />
+    <ClInclude Include="Game\World\Structure\Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\shader.fs" />

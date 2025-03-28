@@ -1,4 +1,5 @@
 #include "Chunk.h"
+#include "World/Structure/Cactus.h"
 
 Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) : vbo(GL_ARRAY_BUFFER), transparentVbo(GL_ARRAY_BUFFER)
 {
@@ -62,7 +63,16 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                 // random number between 0 and 1
                 float folliageRandomValue = static_cast<float>(rand()) / RAND_MAX;
 
-                if (folliageRandomValue < folliageProbability) {
+                if (mChunk[x][y][z] == 4 && folliageRandomValue < folliageProbability / 10) {
+                    Cactus* cactus = new Cactus(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 100));
+                    for (auto vertex : cactus->GetCactusVertices())
+                    {
+                        mChunkVertices.push_back(vertex);
+                    }
+                    delete cactus;
+                }
+
+                else if (folliageRandomValue < folliageProbability) {
                     AddFolliage(x, y, z, (folliageRandomValue * 100));
                 }
             }
@@ -71,13 +81,13 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
     // bind the VAOs and send all the vertex infos to the shaders
     vao.Bind(); 
-    vbo.BufferData(mAllVertices.size() * sizeof(Vertex), mAllVertices.data(), GL_STATIC_DRAW); 
+    vbo.BufferData(mChunkVertices.size() * sizeof(Vertex), mChunkVertices.data(), GL_STATIC_DRAW); 
     vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords)); 
     vao.Unbind();
 
     transparentVao.Bind();
-    transparentVbo.BufferData(mTransparentVertices.size() * sizeof(Vertex), mTransparentVertices.data(), GL_STATIC_DRAW);
+    transparentVbo.BufferData(mFolliageVertices.size() * sizeof(Vertex), mFolliageVertices.data(), GL_STATIC_DRAW);
     transparentVbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
     transparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     transparentVao.Unbind();
@@ -85,7 +95,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
 Chunk::~Chunk()
 {
-
+    delete mShader;
 }
 
 void Chunk::CheckForNeighborBlock(int x, int y, int z)
@@ -239,32 +249,32 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
             // add all the vertices for one face
             for (int i = 0; i < 2; i++){
             const glm::vec3* offsets = vertexOffsets[i];
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                                  static_cast<uint8_t>(y + offsets[0].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[0].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                                                    static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
                                                  static_cast<uint8_t>(y + offsets[1].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[1].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                                                    static_cast<uint16_t>(uvCoords[1].y * 65535)} });
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                                  static_cast<uint8_t>(y + offsets[2].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[2].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                                                    static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                                  static_cast<uint8_t>(y + offsets[0].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[0].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                                                    static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                                  static_cast<uint8_t>(y + offsets[2].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[2].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                                                    static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-            mTransparentVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
+            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
                                                  static_cast<uint8_t>(y + offsets[3].y),
                                                  static_cast<uint8_t>(z + 1 + offsets[3].z)},
                                            i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
@@ -363,32 +373,32 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
         const glm::vec3* offsets = vertexOffsets[faceIndex];
   
         // Add the 6 vertices of a face into the vertex vector
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
                                              static_cast<uint8_t>(z + offsets[0].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                                                static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
                                              static_cast<uint8_t>(y + offsets[1].y),
                                              static_cast<uint8_t>(z + offsets[1].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                                                static_cast<uint16_t>(uvCoords[1].y * 65535)} });
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
                                              static_cast<uint8_t>(z + offsets[2].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                                                static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
                                              static_cast<uint8_t>(y + offsets[0].y),
                                              static_cast<uint8_t>(z + offsets[0].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                                                static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
                                              static_cast<uint8_t>(y + offsets[2].y),
                                              static_cast<uint8_t>(z + offsets[2].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                                                static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-        mAllVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
+        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
                                              static_cast<uint8_t>(y + offsets[3].y),
                                              static_cast<uint8_t>(z + offsets[3].z)},
                                        i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
@@ -410,7 +420,7 @@ void Chunk::SetPosition(glm::vec3 newPos)
 
 void Chunk::DrawChunkMesh()
 { 
-    if (mAllVertices.size() > 0) {
+    if (mChunkVertices.size() > 0) {
         // Use shader and send all the matrices
         mShader->Use();
 
@@ -425,14 +435,14 @@ void Chunk::DrawChunkMesh()
         mShader->SetMat4("u_MVP", mvp);
         // Draw the chunk
         vao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mAllVertices.size()));
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mChunkVertices.size()));
         vao.Unbind();
     }
 }
 
 void Chunk::DrawFolliageMesh()
 {
-    if (mTransparentVertices.size() > 0) {
+    if (mFolliageVertices.size() > 0) {
 
         mShader->Use();
 
@@ -446,7 +456,7 @@ void Chunk::DrawFolliageMesh()
 
         mShader->SetMat4("u_MVP", mvp);
         transparentVao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mTransparentVertices.size()));
+        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mFolliageVertices.size()));
         transparentVao.Unbind();
     }
 }

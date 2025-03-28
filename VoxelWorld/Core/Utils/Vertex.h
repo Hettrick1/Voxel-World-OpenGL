@@ -7,18 +7,14 @@
 
 // structure to store all the vertex informations, used to store all the chunk vertices position^s and the texture coordinates.
 
-struct i8Vec3
+struct i16Vec3
 {
-	uint8_t x;
-	uint8_t y;
-	uint8_t z;
+	uint16_t x;
+	uint16_t y;
+	uint16_t z;
 
-	i8Vec3 operator=(const glm::vec3& vec)
+	i16Vec3 operator=(const glm::vec3& vec)
 	{
-		//assert(floor(vec.x) <= CHUNK_SIZE_X);
-		//assert(floor(vec.y) <= CHUNK_SIZE_Y);
-		//assert(floor(vec.z) <= CHUNK_SIZE_Z);
-
 		x = static_cast<int>(floor(vec.x));
 		y = static_cast<int>(floor(vec.y));
 		z = static_cast<int>(floor(vec.z));
@@ -36,6 +32,6 @@ struct i16Vec2
 
 struct Vertex
 {
-	i8Vec3 position;
+	i16Vec3 position;
 	i16Vec2 texture_coords;
 };
