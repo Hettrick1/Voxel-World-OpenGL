@@ -82,13 +82,13 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     // bind the VAOs and send all the vertex infos to the shaders
     vao.Bind(); 
     vbo.BufferData(mChunkVertices.size() * sizeof(Vertex), mChunkVertices.data(), GL_STATIC_DRAW); 
-    vbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
+    vbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords)); 
     vao.Unbind();
 
     transparentVao.Bind();
     transparentVbo.BufferData(mFolliageVertices.size() * sizeof(Vertex), mFolliageVertices.data(), GL_STATIC_DRAW);
-    transparentVbo.VertexAttribPointer(0, 3, GL_UNSIGNED_BYTE, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position));
+    transparentVbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     transparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     transparentVao.Unbind();
 }
@@ -218,7 +218,7 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
             int blockIndex = static_cast<int>(Block::DeadBush);
             switch (mChunk[x][y][z])
             {
-            case 1 :
+            case 1:
                 if (probability <= 0.3) {
                     blockIndex = static_cast<int>(Block::Dandelion);
                     break;
@@ -236,7 +236,7 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                 blockIndex = static_cast<int>(Block::DeadBush);
                 break;
             }
-            
+
             float uMin = (blockIndex * mBlockSize) / mTextureWidth;
             float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
@@ -247,38 +247,52 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                 {uMax, 0.0f},
             };
             // add all the vertices for one face
-            for (int i = 0; i < 2; i++){
-            const glm::vec3* offsets = vertexOffsets[i];
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
-                                                 static_cast<uint8_t>(y + offsets[0].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[0].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
-                                                 static_cast<uint8_t>(y + offsets[1].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[1].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[1].y * 65535)} });
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
-                                                 static_cast<uint8_t>(y + offsets[2].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[2].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
-                                                 static_cast<uint8_t>(y + offsets[0].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[0].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
-                                                 static_cast<uint8_t>(y + offsets[2].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[2].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-            mFolliageVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
-                                                 static_cast<uint8_t>(y + offsets[3].y),
-                                                 static_cast<uint8_t>(z + 1 + offsets[3].z)},
-                                           i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
-                                                   static_cast<uint16_t>(uvCoords[3].y * 65535)} });
+            for (int i = 0; i < 2; i++)
+            {
+                const glm::vec3* offsets = vertexOffsets[i];
+                // Add the 6 vertices of a face into the vertex vector
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[0].x,
+                          y + offsets[0].y,
+                          z + 1 + offsets[0].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                            static_cast<uint16_t>(uvCoords[0].y * 65535)}
+                    });
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[1].x,
+                          y + offsets[1].y,
+                          z + 1 + offsets[1].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
+                            static_cast<uint16_t>(uvCoords[1].y * 65535)}
+                    });
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[2].x,
+                          y + offsets[2].y,
+                          z + 1 + offsets[2].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                            static_cast<uint16_t>(uvCoords[2].y * 65535)}
+                    });
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[0].x,
+                          y + offsets[0].y,
+                          z + 1 + offsets[0].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                            static_cast<uint16_t>(uvCoords[0].y * 65535)}
+                    });
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[2].x,
+                          y + offsets[2].y,
+                          z + 1 + offsets[2].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                            static_cast<uint16_t>(uvCoords[2].y * 65535)}
+                    });
+                mFolliageVertices.push_back(Vertex{
+                    fVec3{x + offsets[3].x,
+                          y + offsets[3].y,
+                          z + 1 + offsets[3].z},
+                    i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
+                            static_cast<uint16_t>(uvCoords[3].y * 65535)}
+                    });
             }
         }
     }
@@ -371,38 +385,50 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
 
     if (faceIndex >= 0) {
         const glm::vec3* offsets = vertexOffsets[faceIndex];
-  
+
         // Add the 6 vertices of a face into the vertex vector
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
-                                             static_cast<uint8_t>(y + offsets[0].y),
-                                             static_cast<uint8_t>(z + offsets[0].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[1].x),
-                                             static_cast<uint8_t>(y + offsets[1].y),
-                                             static_cast<uint8_t>(z + offsets[1].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[1].y * 65535)} });
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
-                                             static_cast<uint8_t>(y + offsets[2].y),
-                                             static_cast<uint8_t>(z + offsets[2].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[0].x),
-                                             static_cast<uint8_t>(y + offsets[0].y),
-                                             static_cast<uint8_t>(z + offsets[0].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[0].y * 65535)} });
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[2].x),
-                                             static_cast<uint8_t>(y + offsets[2].y),
-                                             static_cast<uint8_t>(z + offsets[2].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[2].y * 65535)} });
-        mChunkVertices.push_back(Vertex{ i8Vec3{static_cast<uint8_t>(x + offsets[3].x),
-                                             static_cast<uint8_t>(y + offsets[3].y),
-                                             static_cast<uint8_t>(z + offsets[3].z)},
-                                       i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
-                                               static_cast<uint16_t>(uvCoords[3].y * 65535)} });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[0].x,
+                  y + offsets[0].y,
+                  z + offsets[0].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                    static_cast<uint16_t>(uvCoords[0].y * 65535)}
+            });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[1].x,
+                  y + offsets[1].y,
+                  z + offsets[1].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
+                    static_cast<uint16_t>(uvCoords[1].y * 65535)}
+            });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[2].x,
+                  y + offsets[2].y,
+                  z + offsets[2].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                    static_cast<uint16_t>(uvCoords[2].y * 65535)}
+            });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[0].x,
+                  y + offsets[0].y,
+                  z + offsets[0].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
+                    static_cast<uint16_t>(uvCoords[0].y * 65535)}
+            });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[2].x,
+                  y + offsets[2].y,
+                  z + offsets[2].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
+                    static_cast<uint16_t>(uvCoords[2].y * 65535)}
+            });
+        mChunkVertices.push_back(Vertex{
+            fVec3{x + offsets[3].x,
+                  y + offsets[3].y,
+                  z + offsets[3].z},
+            i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
+                    static_cast<uint16_t>(uvCoords[3].y * 65535)}
+            });
     }
 }
 
