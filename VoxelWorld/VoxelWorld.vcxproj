@@ -24,7 +24,7 @@
     <ProjectGuid>{c622101e-2a95-4a30-8abf-b71aa1366e31}</ProjectGuid>
     <RootNamespace>VoxelWorld</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>Woxel-World-Project</ProjectName>
+    <ProjectName>Voxel-World-Project</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -156,6 +156,7 @@
     <ClCompile Include="Game\World\Chunk.cpp" />
     <ClCompile Include="Core\OpenGL\IndexBuffer.cpp" />
     <ClCompile Include="Game\World\Structure\Cactus.cpp" />
+    <ClCompile Include="Game\World\Structure\Tree.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Core\OpenGL\Shader.cpp" />
     <ClCompile Include="Core\OpenGL\imageLoader\stb_image.cpp" />

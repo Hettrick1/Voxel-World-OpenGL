@@ -65,7 +65,7 @@ int main() {
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glfwSwapInterval(0);
+    glfwSwapInterval(0); //->>>>>>> unlimited framerate
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 

@@ -1,4 +1,5 @@
 #include "Chunk.h"
+#include "World/Structure/Tree.h"
 #include "World/Structure/Cactus.h"
 
 Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) : vbo(GL_ARRAY_BUFFER), transparentVbo(GL_ARRAY_BUFFER)
@@ -72,7 +73,14 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                     }
                     delete cactus;
                 }
-
+                else if (mChunk[x][y][z] == 1 && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1 && folliageRandomValue < folliageProbability / 15) {
+                    Tree* tree = new Tree(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 1000));
+                    for (auto vertex : tree->GetTreeLogVertices())
+                    {
+                        mChunkVertices.push_back(vertex);
+                    }
+                    delete tree;
+                }
                 else if (folliageRandomValue < folliageProbability) {
                     AddFolliage(x, y, z, (folliageRandomValue * 100));
                 }
