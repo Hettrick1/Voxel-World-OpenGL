@@ -22,14 +22,14 @@ Cactus::Cactus(glm::vec3 initialPos, float blockSize, float textureWidth, float 
         {
             for (auto direction : directionsBottom)
             {
-                AddFace(initialPos.x, initialPos.y, initialPos.z + i, direction);
+                AddFace(static_cast<int>(initialPos.x), static_cast<int>(initialPos.y), static_cast<int>(initialPos.z + i), direction);
             }
         }
         else 
         {
             for (auto direction : directionsTop)
             {
-                AddFace(initialPos.x, initialPos.y, initialPos.z + i, direction);
+                AddFace(static_cast<int>(initialPos.x), static_cast<int>(initialPos.y), static_cast<int>(initialPos.z + i), direction);
             }
         }
     }
@@ -42,7 +42,7 @@ Cactus::~Cactus()
 
 void Cactus::AddFace(int x, int y, int z, glm::ivec3 direction)
 {
-    float shrink = 0.063;
+    float shrink = 0.063f;
     static const glm::vec3 vertexOffsets[6][4] = {
         // Right Face (+X)
         {{1.0f - shrink, 0.0f, 0.0f}, {1.0f - shrink, 1.0f, 0.0f}, {1.0f - shrink, 1.0f, 1.0f}, {1.0f - shrink, 0.0f, 1.0f}},

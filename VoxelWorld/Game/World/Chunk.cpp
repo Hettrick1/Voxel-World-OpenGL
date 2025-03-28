@@ -63,8 +63,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                 // random number between 0 and 1
                 float folliageRandomValue = static_cast<float>(rand()) / RAND_MAX;
 
-                if (mChunk[x][y][z] == 4 && folliageRandomValue < folliageProbability / 10) {
-                    Cactus* cactus = new Cactus(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 100));
+                if (mChunk[x][y][z] == 4 && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1 && folliageRandomValue < folliageProbability / 10) {
+                    Cactus* cactus = new Cactus(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 1000));
                     for (auto vertex : cactus->GetCactusVertices())
                     {
                         mChunkVertices.push_back(vertex);
