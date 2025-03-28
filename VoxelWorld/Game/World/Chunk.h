@@ -30,7 +30,8 @@ class Chunk
 private:
 	int8_t mChunk[16][16][200] = { -1 };
 	Camera* mCamera;
-	Shader* mShader;
+	Shader* mBlockShader;
+	Shader* mFolliageShader;
 	GLuint mTexture;
 	glm::vec3 mPosition;
 	std::vector<Vertex> mChunkVertices;

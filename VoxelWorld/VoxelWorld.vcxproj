@@ -182,6 +182,8 @@
     <ClInclude Include="Game\World\Structure\Tree.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Core\Shaders\folliageShader.fs" />
+    <None Include="Core\Shaders\folliageShader.vs" />
     <None Include="Core\Shaders\shader.fs" />
     <None Include="Core\Shaders\shader.vs" />
     <None Include="Core\Shaders\skyShader.fs" />

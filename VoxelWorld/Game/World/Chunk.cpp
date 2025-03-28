@@ -11,7 +11,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     mBlockSize = texHeight;
     mTextureWidth = texWidth;
 
-    mShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
+    mBlockShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
+    mFolliageShader = new Shader("Core/Shaders/folliageShader.vs", "Core/Shaders/folliageShader.fs");
 
     heightMap.SetSeed(seed);
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
@@ -95,7 +96,12 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
 Chunk::~Chunk()
 {
-    delete mShader;
+    delete mBlockShader;
+    delete mFolliageShader;
+    transparentVbo.~VertexBuffer();
+    vbo.~VertexBuffer();
+    vao.~VertexArray();
+    transparentVao.~VertexArray();
 }
 
 void Chunk::CheckForNeighborBlock(int x, int y, int z)
@@ -448,7 +454,7 @@ void Chunk::DrawChunkMesh()
 { 
     if (mChunkVertices.size() > 0) {
         // Use shader and send all the matrices
-        mShader->Use();
+        mBlockShader->Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
@@ -458,7 +464,7 @@ void Chunk::DrawChunkMesh()
         glm::mat4 projection = mCamera->GetProjectionMatrix(); 
         glm::mat4 mvp = projection * view * model; 
 
-        mShader->SetMat4("u_MVP", mvp);
+        mBlockShader->SetMat4("u_MVP", mvp);
         // Draw the chunk
         vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mChunkVertices.size()));
@@ -470,7 +476,7 @@ void Chunk::DrawFolliageMesh()
 {
     if (mFolliageVertices.size() > 0) {
 
-        mShader->Use();
+        mFolliageShader->Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
@@ -480,7 +486,7 @@ void Chunk::DrawFolliageMesh()
         glm::mat4 projection = mCamera->GetProjectionMatrix();
         glm::mat4 mvp = projection * view * model;
 
-        mShader->SetMat4("u_MVP", mvp);
+        mFolliageShader->SetMat4("u_MVP", mvp);
         transparentVao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mFolliageVertices.size()));
         transparentVao.Unbind();
