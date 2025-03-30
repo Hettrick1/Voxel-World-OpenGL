@@ -249,9 +249,16 @@ bool Chunk::CheckForTree(int x, int y, int z)
 void Chunk::AddFolliage(int x, int y, int z, float probability)
 {
     // a folliage is made of two planes crossing in the center. 
+    float shrink = 0.0f;
+
     static const glm::vec3 vertexOffsets[2][4] = {
-         {{0.0f, 0.0f, 1.0f}, {0.0f, 0.0f, 0.0f}, {1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 1.0f}}, // plane 1
-         {{1.0f, 0.0f, 1.0f}, {1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 1.0f, 1.0f}}, // plane 2
+        // Plane 1
+        {{0.0f + shrink, 0.0f + shrink, 1.0f}, {0.0f + shrink, 0.0f + shrink, 0.0f},
+         {1.0f - shrink, 1.0f - shrink, 0.0f + shrink}, {1.0f - shrink, 1.0f - shrink, 1.0f - shrink}},
+
+         // Plane 2
+         {{1.0f - shrink, 0.0f + shrink, 1.0f}, {1.0f - shrink, 0.0f + shrink, 0.0f},
+          {0.0f + shrink, 1.0f - shrink, 0.0f + shrink}, {0.0f + shrink, 1.0f - shrink, 1.0f - shrink}},
     };
 
     if (mChunk[x][y][z] != -1) { // add only if the current block is air
@@ -278,7 +285,7 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                 break;
             }
 
-            float uMin = (blockIndex * mBlockSize) / mTextureWidth;
+            float uMin = (blockIndex * mBlockSize + 0.5f) / mTextureWidth;
             float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
             glm::vec2 uvCoords[4] = {

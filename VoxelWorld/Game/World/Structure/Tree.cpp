@@ -42,9 +42,9 @@ Tree::Tree(glm::vec3 initialPos, float blockSize, float textureWidth, float heig
         for (int y = 0; y < 5; y++) {
             for (int z = 0; z < 6; z++) {
                 if (mLeaves[x][y][z] == 1) {
-                    int worldX = initialPos.x + x - centerX;
-                    int worldY = initialPos.y + y - centerY;
-                    int worldZ = initialPos.z + z + (int)mTruncHeight - 1;
+                    int worldX = static_cast<int>(initialPos.x) + x - centerX;
+                    int worldY = static_cast<int>(initialPos.y) + y - centerY;
+                    int worldZ = static_cast<int>(initialPos.z) + z + (int)mTruncHeight - 1;
 
                     glm::ivec3 directions[6] = {
                         {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
