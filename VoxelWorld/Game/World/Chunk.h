@@ -49,6 +49,7 @@ public:
 	~Chunk();
 	void CheckForNeighborBlock(int x, int y, int z);
 	void CheckWithNeighborChunk();
+	bool CheckForTree(int x, int y, int z);
 	void AddFolliage(int x, int y, int z, float probability);
 	void DrawChunkMesh();
 	void DrawFolliageMesh();

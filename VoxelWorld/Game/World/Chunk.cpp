@@ -73,9 +73,13 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                     }
                     delete cactus;
                 }
-                else if (mChunk[x][y][z] == 1 && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1 && folliageRandomValue < folliageProbability / 15) {
+                else if (mChunk[x][y][z] == 1 && z < CHUNK_SIZE_Z - 10 && folliageRandomValue < folliageProbability / 15 && CheckForTree(x, y, z)) {
                     Tree* tree = new Tree(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 1000));
                     for (auto vertex : tree->GetTreeLogVertices())
+                    {
+                        mChunkVertices.push_back(vertex);
+                    }
+                    for (auto vertex : tree->GetTreeLeavesVertices())
                     {
                         mChunkVertices.push_back(vertex);
                     }
@@ -217,6 +221,29 @@ void Chunk::CheckWithNeighborChunk()
             }
         }
     }
+}
+
+bool Chunk::CheckForTree(int x, int y, int z)
+{
+    for (int xOffset = -3; xOffset != 3; xOffset++)
+    {
+        for (int yOffset = -3; yOffset != 3; yOffset++)
+        {
+            float scale = 2.0f;
+            float globalX = mPosition.x + x + xOffset;
+            float globalY = mPosition.y + y + yOffset;
+
+            // retrieve the chunk information from the biome and the heightmap noises
+            float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
+            float heightBiome = biome.GetNoise(globalX * (scale / 20), globalY * (scale / 20));
+            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
+            if (mChunk[x][y][z + 1] != -1 || z + 4 < height) {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 void Chunk::AddFolliage(int x, int y, int z, float probability)

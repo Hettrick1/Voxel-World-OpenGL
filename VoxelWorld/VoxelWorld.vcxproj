@@ -181,6 +181,7 @@
     <ClInclude Include="Game\World\Sky.h" />
     <ClInclude Include="Game\World\Structure\Cactus.h" />
     <ClInclude Include="Game\World\Structure\Tree.h" />
+    <ClInclude Include="Game\World\Structure\TreeLeavesTemplate.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Core\Shaders\folliageShader.fs" />

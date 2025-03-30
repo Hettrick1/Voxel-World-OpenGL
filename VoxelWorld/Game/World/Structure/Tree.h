@@ -9,6 +9,7 @@ public:
 	Tree(glm::vec3 initialPos, float blockSize, float textureWidth, float heightProbability);
 	~Tree();
 	void AddLogFace(int x, int y, int z, glm::ivec3 direction);
+	void AddLeavesFace(int x, int y, int z, glm::ivec3 direction);
 	inline std::vector<Vertex> GetTreeLogVertices() const { return mTreeLogVertices; }
 	inline std::vector<Vertex> GetTreeLeavesVertices() const { return mTreeLeavesVertices; }
 private:
@@ -17,4 +18,5 @@ private:
 	float mBlockSize;
 	float mTextureWidth;
 	float mTruncHeight;
+	uint8_t mLeaves[5][5][6] = { 0 };
 };
