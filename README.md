@@ -1,6 +1,8 @@
 
 # Projet Voxel Terrain Génératif 🌍
 
+**⚠️ :** Ce projet est en cours de développement et certaines fonctionnalités peuvent être incomplètes, bugguées ou sujettes à des modifications. N'hésitez pas à partager vos retours ou suggestions !
+
 Ce projet en C++ avec OpenGL, GLFW3 et Glad recrée un terrain voxel procédural inspiré de Minecraft. Le monde est divisé en chunks, chaque chunk étant généré dynamiquement à mesure que le joueur se déplace. Le système optimise la génération et le rendu en ne créant que les faces visibles des chunks, tout en incluant des éléments comme des biomes, du relief et du foliage.
 
 ## Fonctionnalités ✨
@@ -17,3 +19,15 @@ Ce projet en C++ avec OpenGL, GLFW3 et Glad recrée un terrain voxel procédural
 ![frame_0_22_7f](https://github.com/user-attachments/assets/9fee71eb-dc6f-48ab-9cbc-1ff1f797d860)
 ![frame_0_37_56f](https://github.com/user-attachments/assets/6170b2e7-8dcf-4618-b8f9-201095abfc52)
 ![frame_0_40_26f](https://github.com/user-attachments/assets/1ecbd093-daa9-4c9a-8a3e-761cb7ae3cfa)
+
+## 🔄 Roadmap
+
+Voici les prochaines évolutions du projet :
+
+- ⚡ Génération en multithread pour améliorer les performances.
+- 🌟 Amélioration du système de lumière pour un rendu plus réaliste.
+- 👤 Ajout d'un player avec un système de physique basique et de collisions avec les blocks.
+- ⚒ Pouvoir casser et ajouter des blocks pour une interaction plus immersive.
+- ♻️ Refactorisation du code pour corriger les warnings et les fuites de mémoire.
+
+Stay tuned pour les prochaines mises à jour ! 🚀
