@@ -3,6 +3,8 @@
 
 **⚠️ :** Ce projet est en cours de développement et certaines fonctionnalités peuvent être incomplètes, bugguées ou sujettes à des modifications. N'hésitez pas à partager vos retours ou suggestions !
 
+##
+
 Ce projet en C++ avec OpenGL, GLFW3 et Glad recrée un terrain voxel procédural inspiré de Minecraft. Le monde est divisé en chunks, chaque chunk étant généré dynamiquement à mesure que le joueur se déplace. Le système optimise la génération et le rendu en ne créant que les faces visibles des chunks, tout en incluant des éléments comme des biomes, du relief et du foliage.
 
 ## Fonctionnalités ✨
