@@ -14,6 +14,8 @@
 #include <vector>
 #include <unordered_map>
 #include <algorithm>
+#include <queue>
+#include <mutex>
 
 struct ChunkHash { // structure to create a hash of a chunk regarding its position
 	size_t operator()(const std::pair<int, int>& pos) const {
@@ -39,7 +41,12 @@ public:
 	bool IsChunkInFrustum(const glm::vec3& chunkPosition);
 	void GenerateNewChunk(int chunkX, int chunkY);
 	void RemoveOldChunk(int cameraChunkX, int cameraChunkY);
+
+	void LoadChunkOnThread(); // load chunk on another thread
 private:
+
+
+
 	int mRenderDistance;
 	glm::vec3 mPreviousCameraPosition;
 	int mPreloadChunkFactor;

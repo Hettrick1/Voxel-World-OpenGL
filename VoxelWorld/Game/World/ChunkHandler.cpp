@@ -106,8 +106,8 @@ void ChunkHandler::UpdateChunks()
     glm::vec2 viewportSize = mCamera->GetCameraSize(); 
 
     // where is the camera in chunk coordinates
-    int cameraChunkX = static_cast<int>(std::floor(cameraPos.x / 16));
-    int cameraChunkY = static_cast<int>(std::floor(cameraPos.y / 16));
+    int cameraChunkX = static_cast<int>(std::floor(cameraPos.x * 0.0625f));// divide by 16
+    int cameraChunkY = static_cast<int>(std::floor(cameraPos.y * 0.0625f));// divide by 16
 
     glm::vec3 currentPosition = mCamera->GetPosition();
     glm::vec3 direction = currentPosition - mPreviousCameraPosition;
@@ -125,8 +125,8 @@ void ChunkHandler::UpdateChunks()
     int height = mRenderDistance*2;
 
     // Chunk generation regarding the position
-    for (int i = -height / 2; i <= height / 2; ++i) {
-        for (int j = -mRectWidth / 2; j <= mRectWidth / 2; ++j) {
+    for (int i = -height * 0.5f; i <= height * 0.5f; ++i) {
+        for (int j = -mRectWidth *0.5f; j <= mRectWidth * 0.5f; ++j) {
             // Calcul de la position selon l'angle de la direction
             int offsetX = static_cast<int>(std::round(i * cos(angle) - j * sin(angle)));
             int offsetY = static_cast<int>(std::round(i * sin(angle) + j * cos(angle)));
@@ -155,7 +155,7 @@ void ChunkHandler::DrawChunks()
         // Distance between the chunk and the camera
         float distance = glm::length(chunkPos - glm::vec3(mCamera->GetPosition().x, mCamera->GetPosition().y, 0));
 
-        distance /= 16;
+        distance *= 0.0625f; // divide by 16
 
         // This is the folliage render distance, if the distance between the chunk and the camera is smaller than 8 we draw the folliage
         if (distance < 8 && IsChunkInFrustum(chunkPos)) {
@@ -224,8 +224,8 @@ void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
     // still need to delete them from the memory when we are really far away from them
     for (auto it = mActiveChunks.begin(); it != mActiveChunks.end();) {
         glm::vec3 pos = it->second->GetPosition();
-        int posChunkX = static_cast<int>(pos.x / CHUNK_SIZE_X);
-        int posChunkY = static_cast<int>(pos.y / CHUNK_SIZE_Y);
+        int posChunkX = static_cast<int>(pos.x * 0.0625);
+        int posChunkY = static_cast<int>(pos.y * 0.0625); 
 
         int distX = std::abs(cameraChunkX - posChunkX);
         int distY = std::abs(cameraChunkY - posChunkY);

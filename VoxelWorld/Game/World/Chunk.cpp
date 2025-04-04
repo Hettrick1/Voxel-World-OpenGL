@@ -30,8 +30,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
             // retrieve the chunk information from the biome and the heightmap noises
             float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
-            float heightBiome = biome.GetNoise(globalX * (scale / 20), globalY * (scale / 20));
-            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            float heightBiome = biome.GetNoise(globalX * (scale * 0.05f), globalY * (scale * 0.05f));
+            float heightMultiplier = (heightBiome + 1.0f) * 0.25;
             int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
@@ -65,21 +65,21 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
                 // random number between 0 and 1
                 float folliageRandomValue = static_cast<float>(rand()) / RAND_MAX;
 
-                if (mChunk[x][y][z] == 4 && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1 && folliageRandomValue < folliageProbability / 10) {
+                if (mChunk[x][y][z] == 4 && z < CHUNK_SIZE_Z - 1 && mChunk[x][y][z + 1] == -1 && folliageRandomValue < folliageProbability * 0.1) {
                     Cactus* cactus = new Cactus(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 1000));
-                    for (auto vertex : cactus->GetCactusVertices())
+                    for (auto& vertex : cactus->GetCactusVertices())
                     {
                         mChunkVertices.push_back(vertex);
                     }
                     delete cactus;
                 }
-                else if (mChunk[x][y][z] == 1 && z < CHUNK_SIZE_Z - 10 && folliageRandomValue < folliageProbability / 15 && CheckForTree(x, y, z)) {
+                else if (mChunk[x][y][z] == 1 && z < CHUNK_SIZE_Z - 10 && folliageRandomValue < folliageProbability * 0.066667f && CheckForTree(x, y, z)) {
                     Tree* tree = new Tree(glm::vec3(x, y, z), mBlockSize, mTextureWidth, (folliageRandomValue * 1000));
-                    for (auto vertex : tree->GetTreeLogVertices())
+                    for (auto& vertex : tree->GetTreeLogVertices())
                     {
                         mChunkVertices.push_back(vertex);
                     }
-                    for (auto vertex : tree->GetTreeLeavesVertices())
+                    for (auto& vertex : tree->GetTreeLeavesVertices())
                     {
                         mChunkVertices.push_back(vertex);
                     }
@@ -204,13 +204,13 @@ void Chunk::CheckWithNeighborChunk()
 
             // Get the noise value between two chunks to know whether or not to add faces
             float heightValue = heightMap.GetNoise(oldX * scale, oldY * scale); 
-            float heightBiome = biome.GetNoise(oldX * (scale / 20), oldY * (scale / 20));
-            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            float heightBiome = biome.GetNoise(oldX * (scale * 0.05f), oldY * (scale * 0.05f));
+            float heightMultiplier = (heightBiome + 1.0f) * 0.25f;
             int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
 
             float newHeightValue = heightMap.GetNoise(newX * scale, newY * scale);
-            float newHeightBiome = biome.GetNoise(newX * (scale / 20), newY * (scale / 20));
-            float newHeightMultiplier = (newHeightBiome + 1.0f) / 4;
+            float newHeightBiome = biome.GetNoise(newX * (scale * 0.05f), newY * (scale * 0.05f));
+            float newHeightMultiplier = (newHeightBiome + 1.0f) * 0.25f;
             int newHeight = static_cast<int>((newHeightValue + 1.0f) * newHeightMultiplier * CHUNK_SIZE_Z);
 
             for (int z = 0; z < CHUNK_SIZE_Z; z++) {
@@ -237,8 +237,8 @@ bool Chunk::CheckForTree(int x, int y, int z)
 
             // retrieve the chunk information from the biome and the heightmap noises
             float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
-            float heightBiome = biome.GetNoise(globalX * (scale / 20), globalY * (scale / 20));
-            float heightMultiplier = (heightBiome + 1.0f) / 4;
+            float heightBiome = biome.GetNoise(globalX * (scale * 0.05f), globalY * (scale * 0.05f));
+            float heightMultiplier = (heightBiome + 1.0f) * 0.25f;
             int height = static_cast<int>((heightValue + 1.0f) * heightMultiplier * CHUNK_SIZE_Z);
             if (mChunk[x][y][z + 1] != -1 || z + 4 < height) {
                 return false;
@@ -286,9 +286,6 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                 blockIndex = static_cast<int>(Block::DeadBush);
                 break;
             }
-
-            float uMin = (blockIndex * mBlockSize + 0.5f) / mTextureWidth;
-            float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
             glm::vec2 uvCoords[4] = {
                 {0.0f, 0.0f},
@@ -428,9 +425,6 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
         }
         break;
     }
-    
-    float uMin = (blockIndex * mBlockSize) / mTextureWidth;
-    float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
     glm::vec2 uvCoords[4] = {
         {1.0, 1.0f},

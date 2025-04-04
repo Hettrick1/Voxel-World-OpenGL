@@ -21,13 +21,12 @@ void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow* window);
 
-
+float lastX = DEFAULT_WINDOW_X * 0.5f;
+float lastY = DEFAULT_WINDOW_Y * 0.5f;
+bool firstMouse = true;
 
 // create the camera
 Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
-float lastX = DEFAULT_WINDOW_X / 2.0f;
-float lastY = DEFAULT_WINDOW_Y / 2.0f;
-bool firstMouse = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
