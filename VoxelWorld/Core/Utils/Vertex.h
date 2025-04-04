@@ -34,4 +34,5 @@ struct Vertex
 {
 	fVec3 position;
 	i16Vec2 texture_coords;
+	int TexIndex;
 };

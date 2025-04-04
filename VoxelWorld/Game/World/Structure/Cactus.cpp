@@ -93,10 +93,10 @@ void Cactus::AddFace(int x, int y, int z, glm::ivec3 direction)
     float uMax = ((blockIndex + 1) * mBlockSize) / mTextureWidth;
 
     glm::vec2 uvCoords[4] = {
-        {uMax, 1.0f},
-        {uMin, 1.0f},
-        {uMin, 0.0f},
-        {uMax, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
     };
 
     if (faceIndex >= 0) {
@@ -108,42 +108,48 @@ void Cactus::AddFace(int x, int y, int z, glm::ivec3 direction)
                   y + offsets[0].y,
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                    static_cast<uint16_t>(uvCoords[0].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[0].y * 65535)},
+                    blockIndex
             });
         mCactusVertices.push_back(Vertex{
             fVec3{x + offsets[1].x,
                   y + offsets[1].y,
                   z + offsets[1].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
-                    static_cast<uint16_t>(uvCoords[1].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[1].y * 65535)},
+                    blockIndex
             });
         mCactusVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
                   y + offsets[2].y,
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                    static_cast<uint16_t>(uvCoords[2].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[2].y * 65535)},
+                    blockIndex
             });
         mCactusVertices.push_back(Vertex{
             fVec3{x + offsets[0].x,
                   y + offsets[0].y,
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
-                    static_cast<uint16_t>(uvCoords[0].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[0].y * 65535)},
+                    blockIndex
             });
         mCactusVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
                   y + offsets[2].y,
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
-                    static_cast<uint16_t>(uvCoords[2].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[2].y * 65535)},
+                    blockIndex
             });
         mCactusVertices.push_back(Vertex{
             fVec3{x + offsets[3].x,
                   y + offsets[3].y,
                   z + offsets[3].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
-                    static_cast<uint16_t>(uvCoords[3].y * 65535)}
+                    static_cast<uint16_t>(uvCoords[3].y * 65535)},
+                    blockIndex
             });
     }
 }

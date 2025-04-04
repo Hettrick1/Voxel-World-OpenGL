@@ -3,9 +3,6 @@
 #include <unordered_set>
 #include <algorithm>
 
-//std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> activeChunks;
-//std::unordered_set<std::pair<int, int>, ChunkHash, ChunkEqual> unactiveChunks;
-
 ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 {
 	mRenderDistance = renderDistance;
@@ -14,30 +11,65 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     mPreloadChunkFactor = 1;
     mRectWidth = 16;
     mSeed = seed;
-    glGenTextures(1, &mTexture);
-    glBindTexture(GL_TEXTURE_2D, mTexture);
+
+    std::vector<std::string> textureFiles{
+        "Game/Resources/Blocks/GrassTop.png",
+        "Game/Resources/Blocks/GrassSide.png",
+        "Game/Resources/Blocks/GrassSideShadow.png",
+        "Game/Resources/Blocks/Dirt.png",
+        "Game/Resources/Blocks/DirtShadow.png",
+        "Game/Resources/Blocks/Stone.png",
+        "Game/Resources/Blocks/StoneShadow.png",
+        "Game/Resources/Blocks/Cobblestone.png",
+        "Game/Resources/Blocks/CobblestoneShadow.png",
+        "Game/Resources/Blocks/Sand.png",
+        "Game/Resources/Blocks/SandShadow.png",
+        "Game/Resources/Blocks/Grass.png",
+        "Game/Resources/Blocks/Tulip.png",
+        "Game/Resources/Blocks/Dandelion.png",
+        "Game/Resources/Blocks/Cactus.png",
+        "Game/Resources/Blocks/CactusShadow.png",
+        "Game/Resources/Blocks/CactusTop.png",
+        "Game/Resources/Blocks/OakLeaves.png",
+        "Game/Resources/Blocks/OakLeavesShadow.png",
+        "Game/Resources/Blocks/OakLogSide.png",
+        "Game/Resources/Blocks/OakLogSideShadow.png",
+        "Game/Resources/Blocks/OakLogTop.png",
+        "Game/Resources/Blocks/DeadBush.png",
+    };
+
+    glGenTextures(1, &mTextureArray);
+    glBindTexture(GL_TEXTURE_2D_ARRAY, mTextureArray);
 
     // Texture parameter
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, -4.0f); 
 
-    // load the texture of the blocks
-    int width, height, nrChannels;
-    unsigned char* data = stbi_load("Game/Resources/368x16_sheet.png", &width, &height, &nrChannels, 0);
-    if (data)
-    {
-        mBlockSize = static_cast<float>(height);
-        mTextureWidth = static_cast<float>(width);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
+    int width, height, nrChannels; 
+    unsigned char* firstImage = stbi_load(textureFiles[0].c_str(), &width, &height, &nrChannels, 4); 
+    if (!firstImage) {
+        std::cerr << "Erreur chargement texture: " << textureFiles[0] << std::endl;
+        return;
     }
-    else
-    {
-        std::cerr << "Erreur : " << stbi_failure_reason() << std::endl;
+
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA8, width, height, NUM_TEXTURES, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr); 
+
+    for (int i = 0; i < textureFiles.size(); ++i) { 
+        unsigned char* data = stbi_load(textureFiles[i].c_str(), &width, &height, &nrChannels, 4);
+        if (data) {
+            glTexSubImage3D(GL_TEXTURE_2D_ARRAY, 0, 0, 0, i, width, height, 1, GL_RGBA, GL_UNSIGNED_BYTE, data);
+            stbi_image_free(data);
+        }
+        else {
+            std::cerr << "Erreur chargement texture: " << textureFiles[i] << std::endl;
+        }
     }
-    stbi_image_free(data);
+
+    glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+
 	GenerateAllChunks();
 }
 
@@ -57,11 +89,11 @@ void ChunkHandler::GenerateAllChunks()
 			std::pair<int, int> chunkPosition = { i, j };
             // if the chunk is in the render distance
 			if (mActiveChunks.find(chunkPosition) == mActiveChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
-                mActiveChunks[chunkPosition] = new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize);
+                mActiveChunks[chunkPosition] = new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
 			}
             // Add the chunk into the unactive chunk if we preload the chunk and the chunk is outside the render distance
             else if (mUnactiveChunks.find(chunkPosition) == mUnactiveChunks.end()){
-                mUnactiveChunks[chunkPosition] = new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTexture, mTextureWidth, mBlockSize);
+                mUnactiveChunks[chunkPosition] = new Chunk(mCamera, glm::vec3(i, j, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
             }
 		}
 	}
@@ -111,6 +143,8 @@ void ChunkHandler::UpdateChunks()
 
 void ChunkHandler::DrawChunks()
 {
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (auto& pair : mActiveChunks) {
         if (IsChunkInFrustum(pair.second->GetPosition())) {
             pair.second->DrawChunkMesh();
@@ -173,7 +207,7 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
     // does NOT the chunk already exist
     if (mActiveChunks.find(newChunkPosition) == mActiveChunks.end() && mUnactiveChunks.find(newChunkPosition) == mUnactiveChunks.end()) {
         // Create new chunk
-        mActiveChunks[newChunkPosition] = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed, mTexture, mTextureWidth, mBlockSize);
+        mActiveChunks[newChunkPosition] = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
     }
     // if the chunk already exists we just retreve is from the oldChunk vector
     else if (mUnactiveChunks.find(newChunkPosition) != mUnactiveChunks.end())

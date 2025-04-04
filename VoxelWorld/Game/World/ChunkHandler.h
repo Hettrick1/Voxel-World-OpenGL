@@ -45,9 +45,10 @@ private:
 	int mPreloadChunkFactor;
 	int mRectWidth;
 	int mSeed;
-	GLuint mTexture;
+	GLuint mTextureArray;
 	float mBlockSize;
 	float mTextureWidth;
+	const int NUM_TEXTURES = 23;
 	Camera* mCamera;
 	std::unordered_map<std::pair<int, int>, Chunk*, ChunkHash, ChunkEqual> mActiveChunks;
 	std::unordered_map<std::pair<int, int>, Chunk*, ChunkHash, ChunkEqual> mUnactiveChunks;
