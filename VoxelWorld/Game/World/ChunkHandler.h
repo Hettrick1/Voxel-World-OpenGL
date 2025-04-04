@@ -44,7 +44,10 @@ public:
 
 	void LoadChunkOnThread(); // load chunk on another thread
 private:
-
+	std::queue<std::pair<int, int>> mChunksToLoad;
+	std::mutex mMutex;
+	std::thread mLoadingThread;
+	std::atomic<bool> mIsThreadRunning;
 
 
 	int mRenderDistance;

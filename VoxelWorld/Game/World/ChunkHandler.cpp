@@ -71,10 +71,19 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
     glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
 	GenerateAllChunks();
+
+    mIsThreadRunning = true;
+    mLoadingThread = std::thread(&ChunkHandler::LoadChunkOnThread, this);
 }
 
 ChunkHandler::~ChunkHandler()
 {
+    mIsThreadRunning = false;
+    if (mLoadingThread.joinable())
+    {
+        mLoadingThread.join();
+    }
+
     for (auto& pair : mActiveChunks) delete pair.second;
     for (auto& pair : mUnactiveChunks) delete pair.second;
     mActiveChunks.clear();
@@ -143,6 +152,8 @@ void ChunkHandler::UpdateChunks()
 
 void ChunkHandler::DrawChunks()
 {
+    std::lock_guard<std::mutex> lock(mMutex);
+
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (auto& pair : mActiveChunks) {
@@ -203,11 +214,12 @@ bool ChunkHandler::IsChunkInFrustum(const glm::vec3& chunkPosition)
 void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
 {
     std::pair<int, int> newChunkPosition = { chunkX, chunkY };
-
+    std::lock_guard<std::mutex> lock(mMutex);
     // does NOT the chunk already exist
     if (mActiveChunks.find(newChunkPosition) == mActiveChunks.end() && mUnactiveChunks.find(newChunkPosition) == mUnactiveChunks.end()) {
         // Create new chunk
-        mActiveChunks[newChunkPosition] = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
+        //mActiveChunks[newChunkPosition] = new Chunk(mCamera, glm::vec3(chunkX, chunkY, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
+        mChunksToLoad.push(newChunkPosition);
     }
     // if the chunk already exists we just retreve is from the oldChunk vector
     else if (mUnactiveChunks.find(newChunkPosition) != mUnactiveChunks.end())
@@ -222,6 +234,7 @@ void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
 {
     // unload the chunks if the camera is too far away
     // still need to delete them from the memory when we are really far away from them
+    std::lock_guard<std::mutex> lock(mMutex);
     for (auto it = mActiveChunks.begin(); it != mActiveChunks.end();) {
         glm::vec3 pos = it->second->GetPosition();
         int posChunkX = static_cast<int>(pos.x * 0.0625);
@@ -237,5 +250,27 @@ void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
         else {
             ++it;
         }
+    }
+}
+
+void ChunkHandler::LoadChunkOnThread()
+{
+    while (mIsThreadRunning)
+    {
+        if (!mChunksToLoad.empty()) 
+        {
+            std::pair<int, int> chunkPos;
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                chunkPos = mChunksToLoad.front();
+                mChunksToLoad.pop();
+            }
+            Chunk* chunk = new Chunk(mCamera, glm::vec3(chunkPos.first, chunkPos.second, 0), mSeed, mTextureArray, mTextureWidth, mBlockSize);
+            {
+                std::lock_guard<std::mutex> lock(mMutex);
+                mActiveChunks[chunkPos] = chunk;
+            }
+        }
+        std::this_thread::sleep_for(std::chrono::milliseconds(1)); 
     }
 }
