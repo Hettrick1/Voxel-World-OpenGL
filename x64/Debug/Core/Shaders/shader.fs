@@ -4,11 +4,12 @@
 
 out vec4 FragColor;
 in vec2 TexCoord;
+flat in int TexIndex;
 
-uniform sampler2D u_Texture;
+uniform sampler2DArray textureArray;
 
 void main()
 {
-    FragColor = texture(u_Texture, TexCoord); // set texture
+    FragColor = texture(textureArray, vec3(TexCoord, TexIndex)); // set texture
     if(FragColor.a < 0.2) discard;
 }
