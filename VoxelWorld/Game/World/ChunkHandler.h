@@ -22,8 +22,11 @@
 #include <mutex>
 
 struct ChunkHash {
-	size_t operator()(const std::pair<int, int>& pos) const {
-		return ((size_t)pos.first << 32) | (size_t)pos.second;
+	template <class T1, class T2>
+	std::size_t operator()(const std::pair<T1, T2>& p) const {
+		auto hash1 = std::hash<T1>{}(p.first);
+		auto hash2 = std::hash<T2>{}(p.second);
+		return hash1 ^ (hash2 << 1);
 	}
 };
 
@@ -61,11 +64,8 @@ private:
 	int mRenderDistance;
 	glm::vec3 mPreviousCameraPosition;
 	int mPreloadChunkFactor;
-	int mRectWidth;
 	int mSeed;
 	GLuint mTextureArray;
-	float mBlockSize;
-	float mTextureWidth;
 	const int NUM_TEXTURES = 23;
 	Camera* mCamera;
 	std::unordered_map<std::pair<int, int>, ChunkMesh*, ChunkHash, ChunkEqual> mActiveChunks;

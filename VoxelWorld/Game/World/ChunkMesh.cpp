@@ -28,13 +28,17 @@ ChunkMesh::ChunkMesh(ChunkInfos* pChunkInfos)
     mTransparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     mTransparentVbo.VertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
     mTransparentVao.Unbind();
-    mIsValid = true;
+    if (mChunkVertices.size() > 0)
+    {
+        mIsValid = true;
+    }
 }
 
 ChunkMesh::~ChunkMesh()
 {
     delete mBlockShader;
     delete mFolliageShader;
+    delete mChunkInfos;
 }
 
 void ChunkMesh::DrawChunkMesh()

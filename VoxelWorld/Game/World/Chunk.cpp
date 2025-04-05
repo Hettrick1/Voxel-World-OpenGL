@@ -2,7 +2,7 @@
 #include "World/Structure/Tree.h"
 #include "World/Structure/Cactus.h"
 
-ChunkInfos::ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) 
+ChunkInfos::ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint& texture) 
     : mIsValid(false)
 {
     mCamera = cam;
@@ -10,8 +10,6 @@ ChunkInfos::ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, fl
     mPosition.y = pos.y * CHUNK_SIZE_Y;
     mPosition.z = 0;
     mTexture = texture;
-    mBlockSize = texHeight;
-    mTextureWidth = texWidth;
 
     heightMap.SetSeed(seed + 12345);
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
@@ -89,7 +87,10 @@ ChunkInfos::ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, fl
             }
         }
     }
-    mIsValid = true;
+    if (mChunkVertices.size() > 0)
+    {
+        mIsValid = true;
+    }
 }
 
 ChunkInfos::~ChunkInfos()

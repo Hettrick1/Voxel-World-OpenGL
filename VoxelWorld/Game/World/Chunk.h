@@ -33,7 +33,7 @@ private:
 	FastNoiseLite biome;
 	bool mIsValid;
 public:
-	ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint &texture, float &texWidth, float & texHeight);
+	ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint &texture);
 	~ChunkInfos();
 	void CheckForNeighborBlock(int x, int y, int z);
 	void CheckWithNeighborChunk();
