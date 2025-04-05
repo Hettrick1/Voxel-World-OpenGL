@@ -80,7 +80,7 @@ int main() {
     glfwSetScrollCallback(window, scroll_callback);
 
     // create the chunkHandler and the skybox -> don't need to be a pointer ?
-    ChunkHandler* chunkHandler = new ChunkHandler(8, camera, 12345);
+    ChunkHandler* chunkHandler = new ChunkHandler(16, camera, 12345);
     Sky* skybox = new Sky(camera, camera->GetPosition());
 
     while (!glfwWindowShouldClose(window)) {

@@ -233,14 +233,12 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
 
     std::pair<int, int> newcp = { 32, 0 };
     
-    if (chunkX == 32 && chunkY == 0)
-    {
-        if (mActiveChunks.find(newChunkPosition) != mActiveChunks.end()) {
-            // Create new chunk
-            std::cout << "32/0 InUnactive !!!!" << std::endl;
-        }
-        std::cout << "32/0 Send to Queue !!!!" << std::endl;
+    if (mActiveChunks.find(newcp) != mActiveChunks.end()) {
+        // Create new chunk
+        std::cout << "32/0 InUnactive !!!!" << std::endl;
     }
+    //std::cout << "32/0 Send to Queue !!!!" << std::endl;
+
     // does the chunk NOT already exist
     if (mActiveChunks.find(newChunkPosition) == mActiveChunks.end() && mChunksToLoadSet.find(newChunkPosition) == mChunksToLoadSet.end()) 
     {        
