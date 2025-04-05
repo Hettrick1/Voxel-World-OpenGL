@@ -2,7 +2,8 @@
 #include "World/Structure/Tree.h"
 #include "World/Structure/Cactus.h"
 
-Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) : vbo(GL_ARRAY_BUFFER), transparentVbo(GL_ARRAY_BUFFER)
+ChunkInfos::ChunkInfos(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWidth, float& texHeight) 
+    : mIsValid(false)
 {
     mCamera = cam;
     mPosition.x = pos.x * CHUNK_SIZE_X;
@@ -12,12 +13,9 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     mBlockSize = texHeight;
     mTextureWidth = texWidth;
 
-    mBlockShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
-    mFolliageShader = new Shader("Core/Shaders/folliageShader.vs", "Core/Shaders/folliageShader.fs");
-
-    heightMap.SetSeed(seed);
+    heightMap.SetSeed(seed + 12345);
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
-    biome.SetSeed(seed);
+    biome.SetSeed(seed + 67890);
 
     // initialize mChunk with the block type. -1 is air.
     int count = 0;
@@ -25,8 +23,8 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
         for (int y = 0; y < CHUNK_SIZE_Y; y++) {
 
             float scale = 2.0f;
-            float globalX = mPosition.x + x;
-            float globalY = mPosition.y + y;
+            float globalX = (pos.x * CHUNK_SIZE_X) + x;
+            float globalY = (pos.y * CHUNK_SIZE_Y) + y;
 
             // retrieve the chunk information from the biome and the heightmap noises
             float heightValue = heightMap.GetNoise(globalX * scale, globalY * scale);
@@ -91,34 +89,14 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
             }
         }
     }
-
-    // bind the VAOs and send all the vertex infos to the shaders
-    vao.Bind(); 
-    vbo.BufferData(mChunkVertices.size() * sizeof(Vertex), mChunkVertices.data(), GL_STATIC_DRAW); 
-    vbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
-    vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
-    vbo.VertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
-    vao.Unbind();
-
-    transparentVao.Bind();
-    transparentVbo.BufferData(mFolliageVertices.size() * sizeof(Vertex), mFolliageVertices.data(), GL_STATIC_DRAW);
-    transparentVbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
-    transparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
-    transparentVbo.VertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
-    transparentVao.Unbind();
+    mIsValid = true;
 }
 
-Chunk::~Chunk()
+ChunkInfos::~ChunkInfos()
 {
-    delete mBlockShader;
-    delete mFolliageShader;
-    transparentVbo.~VertexBuffer();
-    vbo.~VertexBuffer();
-    vao.~VertexArray();
-    transparentVao.~VertexArray();
 }
 
-void Chunk::CheckForNeighborBlock(int x, int y, int z)
+void ChunkInfos::CheckForNeighborBlock(int x, int y, int z)
 {
     // if the block we are cheking is air, stop checking
     if (mChunk[x][y][z] == -1) return;
@@ -142,7 +120,7 @@ void Chunk::CheckForNeighborBlock(int x, int y, int z)
     }
 }
 
-void Chunk::CheckWithNeighborChunk()
+void ChunkInfos::CheckWithNeighborChunk()
 {
     // here we check if we add to add a face between chunks
     glm::ivec3 directions[4] = {
@@ -225,7 +203,7 @@ void Chunk::CheckWithNeighborChunk()
     }
 }
 
-bool Chunk::CheckForTree(int x, int y, int z)
+bool ChunkInfos::CheckForTree(int x, int y, int z)
 {
     for (int xOffset = -3; xOffset != 3; xOffset++)
     {
@@ -248,8 +226,9 @@ bool Chunk::CheckForTree(int x, int y, int z)
     return true;
 }
 
-void Chunk::AddFolliage(int x, int y, int z, float probability)
+void ChunkInfos::AddFolliage(int x, int y, int z, float probability)
 {
+    mChunkVertices.reserve(mChunkVertices.size() + 12);
     // a folliage is made of two planes crossing in the center. 
     float shrink = 0.0f;
 
@@ -351,8 +330,9 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
     }
 }
 
-void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
+void ChunkInfos::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
 {
+    mChunkVertices.reserve(mChunkVertices.size() + 6);
     static const glm::vec3 vertexOffsets[6][4] = {
         // Right Face (+X)
         {{1, 0, 0}, {1, 1, 0}, {1, 1, 1}, {1, 0, 1}},
@@ -488,57 +468,14 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
     }
 }
 
-glm::vec3 Chunk::GetPosition()
+glm::vec3 ChunkInfos::GetPosition()
 {
     return mPosition;
 }
 
-void Chunk::SetPosition(glm::vec3 newPos)
+void ChunkInfos::SetPosition(glm::vec3 newPos)
 {
     mPosition.x = newPos.x * 16;
     mPosition.y = newPos.y * 16;
     mPosition.z = 0;
-}
-
-void Chunk::DrawChunkMesh()
-{ 
-    if (mChunkVertices.size() > 0) {
-        // Use shader and send all the matrices
-        mBlockShader->Use();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mTexture);
-
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
-        glm::mat4 view = mCamera->GetViewMatrix(); 
-        glm::mat4 projection = mCamera->GetProjectionMatrix(); 
-        glm::mat4 mvp = projection * view * model; 
-
-        mBlockShader->SetMat4("u_MVP", mvp);
-        // Draw the chunk
-        vao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mChunkVertices.size()));
-        vao.Unbind();
-    }
-}
-
-void Chunk::DrawFolliageMesh()
-{
-    if (mFolliageVertices.size() > 0) {
-
-        mFolliageShader->Use();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mTexture);
-
-        glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition);
-        glm::mat4 view = mCamera->GetViewMatrix();
-        glm::mat4 projection = mCamera->GetProjectionMatrix();
-        glm::mat4 mvp = projection * view * model;
-
-        mFolliageShader->SetMat4("u_MVP", mvp);
-        transparentVao.Bind();
-        glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mFolliageVertices.size()));
-        transparentVao.Unbind();
-    }
 }
