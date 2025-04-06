@@ -42,7 +42,6 @@ public:
 	ChunkHandler(int renderDistance, Camera* cam, int seed);
 	~ChunkHandler();
 
-	void GenerateAllChunks();
 	void UpdateChunks();
 	void DrawChunks();
 	bool IsChunkInFrustum(const glm::vec3& chunkPosition);

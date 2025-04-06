@@ -69,8 +69,6 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 
     glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
-	GenerateAllChunks();
-
     mIsThreadRunning = true;
     mLoadingThread = std::thread(&ChunkHandler::LoadChunkOnThread, this);
 }
@@ -89,37 +87,34 @@ ChunkHandler::~ChunkHandler()
     mUnactiveChunks.clear();
 }
 
-void ChunkHandler::GenerateAllChunks()
-{
-    // generate chunks regarding render distance, we can set a preload option to optimize the early game
-	for (int i = -mRenderDistance * mPreloadChunkFactor; i <= mRenderDistance * mPreloadChunkFactor; i++) {
-		for (int j = -mRenderDistance * mPreloadChunkFactor; j <= mRenderDistance * mPreloadChunkFactor; j++) {
-			std::pair<int, int> chunkPosition = { i, j };
-            // if the chunk is in the render distance
-            std::lock_guard<std::mutex> lock(mMutex);
-			if (mActiveChunks.find(chunkPosition) == mActiveChunks.end() && (abs(i) <= mRenderDistance && abs(j) <= mRenderDistance)) {
-                if (mChunksToLoadSet.find(chunkPosition) == mChunksToLoadSet.end()) {
-                    mChunksToLoad.push(chunkPosition);
-                    mChunksToLoadSet.insert(chunkPosition);
-                }           
-			}
-            // Add the chunk into the unactive chunk if we preload the chunk and the chunk is outside the render distance
-            else if (mUnactiveChunks.find(chunkPosition) == mUnactiveChunks.end()){               
-            }
-		}
-	}
-}
-
 void ChunkHandler::UpdateChunks()
 {
     glm::vec3 cameraPos = mCamera->GetPosition(); 
     glm::vec3 cameraRot = mCamera->GetForwardVector(); 
     glm::vec2 viewportSize = mCamera->GetCameraSize(); 
 
-    //std::cout << "x : " << cameraChunkX << " y : " << cameraChunkY << std::endl;
+    {
+        glm::vec3 cameraPos = mCamera->GetPosition();
+        int cameraChunkX = static_cast<int>(std::floor(cameraPos.x * 0.0625f));
+        int cameraChunkY = static_cast<int>(std::floor(cameraPos.y * 0.0625f));
 
-    glm::vec3 currentPosition = mCamera->GetPosition();
-    mPreviousCameraPosition = currentPosition;
+        {
+            std::lock_guard<std::mutex> lock(mMutex);
+            mCurrentCamChunkX = cameraChunkX;
+            mCurrentCamChunkY = cameraChunkY;
+        }
+    }
+    //std::cout << "x : " << mCurrentCamChunkX << " y : " << mCurrentCamChunkY << std::endl;
+    // Chunk generation regarding the position
+    for (int i = -mRenderDistance; i <= mRenderDistance; ++i) {
+        for (int j = -mRenderDistance; j <= mRenderDistance; ++j) {
+            int chunkX = mCurrentCamChunkX + i;
+            int chunkY = mCurrentCamChunkY + j;
+            GenerateNewChunk(chunkX, chunkY);
+        }
+    }
+    // Delete old chunks
+    RemoveOldChunk(mCurrentCamChunkX, mCurrentCamChunkY);
 
     {
         std::lock_guard<std::mutex> lock(mReadyMutex);
@@ -140,28 +135,7 @@ void ChunkHandler::UpdateChunks()
             mChunksReady.pop();
         }
     }
-    {
-        glm::vec3 cameraPos = mCamera->GetPosition();
-        int cameraChunkX = static_cast<int>(std::floor(cameraPos.x * 0.0625f));
-        int cameraChunkY = static_cast<int>(std::floor(cameraPos.y * 0.0625f));
-
-        {
-            std::lock_guard<std::mutex> lock(mMutex);
-            mCurrentCamChunkX = cameraChunkX;
-            mCurrentCamChunkY = cameraChunkY;
-        }
-    }
-
-    // Chunk generation regarding the position
-    for (int i = -mRenderDistance; i <= mRenderDistance; ++i) {
-        for (int j = -mRenderDistance; j <= mRenderDistance; ++j) {
-            int chunkX = mCurrentCamChunkX + i;
-            int chunkY = mCurrentCamChunkY + j;
-            GenerateNewChunk(chunkX, chunkY);
-        }
-    }
-    // Delete old chunks
-    RemoveOldChunk(mCurrentCamChunkX, mCurrentCamChunkY);
+    std::cout << " size : " << mChunksToLoad.size() << std::endl;
 }
 
 void ChunkHandler::DrawChunks()
@@ -229,33 +203,39 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
     int distX = abs(mCurrentCamChunkX - chunkX);
     int distY = abs(mCurrentCamChunkY - chunkY);
 
-    if (distX > mRenderDistance || distY > mRenderDistance) return;
+    if (distX > mRenderDistance || distY > mRenderDistance)
+        return;
 
-    std::pair<int, int> newcp = { 32, 0 };
-    
-    if (mActiveChunks.find(newcp) != mActiveChunks.end()) {
-        // Create new chunk
-        std::cout << "32/0 InUnactive !!!!" << std::endl;
-    }
-    //std::cout << "32/0 Send to Queue !!!!" << std::endl;
+    if (mActiveChunks.find(newChunkPosition) != mActiveChunks.end())
+        return;
 
-    // does the chunk NOT already exist
-    if (mActiveChunks.find(newChunkPosition) == mActiveChunks.end() && mChunksToLoadSet.find(newChunkPosition) == mChunksToLoadSet.end()) 
-    {        
-        if (mUnactiveChunks.find(newChunkPosition) == mUnactiveChunks.end())
+    if (mUnactiveChunks.find(newChunkPosition) != mUnactiveChunks.end())
+    {
+        mActiveChunks[newChunkPosition] = mUnactiveChunks[newChunkPosition];
+        mUnactiveChunks.erase(newChunkPosition);
+        return;
+    }
+
+    if (mChunksToLoadSet.find(newChunkPosition) != mChunksToLoadSet.end())
+        return;
+
+    {
+        std::lock_guard<std::mutex> readyLock(mReadyMutex);
+
+        std::queue<ChunkInfos*> tempQueue = mChunksReady;
+        while (!tempQueue.empty())
         {
-            // Create new chunk
-            mChunksToLoad.push(newChunkPosition);
-            mChunksToLoadSet.insert(newChunkPosition);
-        }
-        // if the chunk already exists we just retreve is from the oldChunk vector
-        else if (mUnactiveChunks.find(newChunkPosition) != mUnactiveChunks.end())
-        {
-            // Déplacer le chunk de la liste inactive à active
-            mActiveChunks[newChunkPosition] = mUnactiveChunks[newChunkPosition];
-            mUnactiveChunks.erase(newChunkPosition);
+            ChunkInfos* chunk = tempQueue.front();
+            tempQueue.pop();
+            std::pair<int, int> chunkPos = { std::floor(chunk->GetPosition().x / 16), std::floor(chunk->GetPosition().y / 16) };
+            if (chunkPos == newChunkPosition)
+            {
+                return;
+            }
         }
     }
+    mChunksToLoad.push(newChunkPosition);
+    mChunksToLoadSet.insert(newChunkPosition);
 }
 
 void ChunkHandler::RemoveOldChunk(int cameraChunkX, int cameraChunkY)
@@ -291,7 +271,7 @@ void ChunkHandler::LoadChunkOnThread()
 {
     while (mIsThreadRunning)
     {
-        for (int i = 0; i < 10 && !mChunksToLoad.empty(); ++i) {
+        for (int i = 0; i < 1000 && !mChunksToLoad.empty(); ++i) {
             if (!mChunksToLoad.empty())
             {
                 std::pair<int, int> chunkPos;
@@ -311,28 +291,27 @@ void ChunkHandler::LoadChunkOnThread()
                         mChunksToLoadSet.erase(chunkPos);
                         continue;
                     }
-
-                    mChunksToLoad.pop();
-                    mChunksToLoadSet.erase(chunkPos);
-                }
-
-                {
-                    std::lock_guard<std::mutex> lock(mMutex);
-                    int distX = abs(currentCamChunkX - chunkPos.first);
-                    int distY = abs(currentCamChunkY - chunkPos.second);
-                    if (distX > mRenderDistance || distY > mRenderDistance) {
+                    if (mActiveChunks.find(chunkPos) != mActiveChunks.end()) {
+                        mChunksToLoad.pop();
+                        mChunksToLoadSet.erase(chunkPos);
+                        continue;
+                    }
+                    if(mUnactiveChunks.find(chunkPos) != mUnactiveChunks.end()){
+                        mChunksToLoad.pop();
+                        mChunksToLoadSet.erase(chunkPos);
                         continue;
                     }
                 }
-
                 ChunkInfos* chunk = new ChunkInfos(mCamera, glm::vec3(chunkPos.first, chunkPos.second, 0), mSeed, mTextureArray);
                 {
                     std::lock_guard<std::mutex> lock(mReadyMutex);
                     mChunksReady.push(chunk);
+                    mChunksToLoad.pop();
+                    mChunksToLoadSet.erase(chunkPos);
                 }
             }
         }
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 }             
 

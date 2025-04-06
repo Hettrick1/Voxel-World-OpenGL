@@ -26,7 +26,7 @@ float lastY = DEFAULT_WINDOW_Y * 0.5f;
 bool firstMouse = true;
 
 // create the camera
-Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
+Camera* camera = new Camera(glm::vec3(512.0f, 0.0f, 100.0f));
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
