@@ -151,6 +151,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\glad.c" />
+    <ClCompile Include="Core\OpenGL\FrameUboOpenGL.cpp" />
     <ClCompile Include="Core\Utils\CubeTextureMap.cpp" />
     <ClCompile Include="Game\World\ChunkHandler.cpp" />
     <ClCompile Include="Game\World\Chunk.cpp" />
@@ -165,6 +166,8 @@
     <ClCompile Include="Game\World\Sky.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Core\OpenGL\FrameData.h" />
+    <ClInclude Include="Core\OpenGL\FrameUboOpenGL.h" />
     <ClInclude Include="Core\Utils\Defs.h" />
     <ClInclude Include="Core\Utils\FastNoiseLite.h" />
     <ClInclude Include="Core\Utils\Vertex.h" />

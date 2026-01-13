@@ -14,8 +14,8 @@
 
 #define DEFAULT_WINDOW_X 1280
 #define DEFAULT_WINDOW_Y 800
-#define GL_VERSION_MAJOR 3
-#define GL_VERSION_MINOR 2
+#define GL_VERSION_MAJOR 4
+#define GL_VERSION_MINOR 5
 
 struct FrustumPlane {
     glm::vec3 normal;

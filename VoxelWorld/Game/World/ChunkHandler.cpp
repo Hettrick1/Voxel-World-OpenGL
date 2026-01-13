@@ -143,8 +143,8 @@ void ChunkHandler::UpdateChunks()
 
 void ChunkHandler::DrawChunks()
 {
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    // glEnable(GL_BLEND);
+    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     for (auto& pair : mActiveChunks) {
         if (IsChunkInFrustum(pair.second->GetPosition())) {
             pair.second->DrawChunkMesh();
@@ -212,7 +212,7 @@ void ChunkHandler::GenerateNewChunk(int chunkX, int chunkY)
     // if the chunk already exists we just retreve is from the oldChunk vector
     else if (mUnactiveChunks.find(newChunkPosition) != mUnactiveChunks.end())
     {
-        // Déplacer le chunk de la liste inactive à active
+        // Dï¿½placer le chunk de la liste inactive active
         mActiveChunks[newChunkPosition] = mUnactiveChunks[newChunkPosition];
         mUnactiveChunks.erase(newChunkPosition);
     }

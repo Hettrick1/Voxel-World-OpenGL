@@ -98,6 +98,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     vbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     vbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     vbo.VertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
+    vbo.VertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     vao.Unbind();
 
     transparentVao.Bind();
@@ -105,6 +106,7 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     transparentVbo.VertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, position)); 
     transparentVbo.VertexAttribPointer(1, 2, GL_UNSIGNED_SHORT, GL_TRUE, sizeof(Vertex), (void*)offsetof(Vertex, texture_coords));
     transparentVbo.VertexAttribPointer(2, 1, GL_INT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, TexIndex));
+    transparentVbo.VertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
     transparentVao.Unbind();
 }
 
@@ -304,7 +306,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[0].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                             static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
                 mFolliageVertices.push_back(Vertex{
                     fVec3{x + offsets[1].x,
@@ -312,7 +315,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[1].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                             static_cast<uint16_t>(uvCoords[1].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
                 mFolliageVertices.push_back(Vertex{
                     fVec3{x + offsets[2].x,
@@ -320,7 +324,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[2].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                             static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
                 mFolliageVertices.push_back(Vertex{
                     fVec3{x + offsets[0].x,
@@ -328,7 +333,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[0].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                             static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
                 mFolliageVertices.push_back(Vertex{
                     fVec3{x + offsets[2].x,
@@ -336,7 +342,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[2].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                             static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
                 mFolliageVertices.push_back(Vertex{
                     fVec3{x + offsets[3].x,
@@ -344,7 +351,8 @@ void Chunk::AddFolliage(int x, int y, int z, float probability)
                           z + 1 + offsets[3].z},
                     i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
                             static_cast<uint16_t>(uvCoords[3].y * 65535)},
-                            blockIndex
+                            blockIndex,
+                    glm::ivec3()
                     });
             }
         }
@@ -382,10 +390,10 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
     {
     case 1 :
         switch (faceIndex) {
-        case 0: blockIndex = static_cast<int>(Block::GrassSideShadow); break;
+        case 0: blockIndex = static_cast<int>(Block::GrassSide); break;
         case 1: blockIndex = static_cast<int>(Block::GrassSide); break;
         case 2: blockIndex = static_cast<int>(Block::GrassSide); break;
-        case 3: blockIndex = static_cast<int>(Block::GrassSideShadow); break;
+        case 3: blockIndex = static_cast<int>(Block::GrassSide); break;
         case 4: blockIndex = static_cast<int>(Block::GrassTop); break;
         case 5: blockIndex = static_cast<int>(Block::GrassSide); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -393,10 +401,10 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
         break;
     case 2:
         switch (faceIndex) {
-        case 0: blockIndex = static_cast<int>(Block::DirtShadow); break;
+        case 0: blockIndex = static_cast<int>(Block::Dirt); break;
         case 1: blockIndex = static_cast<int>(Block::Dirt); break;
         case 2: blockIndex = static_cast<int>(Block::Dirt); break;
-        case 3: blockIndex = static_cast<int>(Block::DirtShadow); break;
+        case 3: blockIndex = static_cast<int>(Block::Dirt); break;
         case 4: blockIndex = static_cast<int>(Block::Dirt); break;
         case 5: blockIndex = static_cast<int>(Block::Dirt); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -404,10 +412,10 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
         break;
     case 3:
         switch (faceIndex) {
-        case 0: blockIndex = static_cast<int>(Block::StoneShadow); break;
+        case 0: blockIndex = static_cast<int>(Block::Stone); break;
         case 1: blockIndex = static_cast<int>(Block::Stone); break;
         case 2: blockIndex = static_cast<int>(Block::Stone); break;
-        case 3: blockIndex = static_cast<int>(Block::StoneShadow); break;
+        case 3: blockIndex = static_cast<int>(Block::Stone); break;
         case 4: blockIndex = static_cast<int>(Block::Stone); break;
         case 5: blockIndex = static_cast<int>(Block::Stone); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -415,10 +423,10 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
         break;
     case 4:
         switch (faceIndex) {
-        case 0: blockIndex = static_cast<int>(Block::SandShadow); break;
+        case 0: blockIndex = static_cast<int>(Block::Sand); break;
         case 1: blockIndex = static_cast<int>(Block::Sand); break;
         case 2: blockIndex = static_cast<int>(Block::Sand); break;
-        case 3: blockIndex = static_cast<int>(Block::SandShadow); break;
+        case 3: blockIndex = static_cast<int>(Block::Sand); break;
         case 4: blockIndex = static_cast<int>(Block::Sand); break;
         case 5: blockIndex = static_cast<int>(Block::Sand); break;
         default: blockIndex = static_cast<int>(Block::Cobblestone); break;
@@ -443,7 +451,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mChunkVertices.push_back(Vertex{
             fVec3{x + offsets[1].x,
@@ -451,7 +460,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[1].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                     static_cast<uint16_t>(uvCoords[1].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mChunkVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -459,7 +469,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mChunkVertices.push_back(Vertex{
             fVec3{x + offsets[0].x,
@@ -467,7 +478,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mChunkVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -475,7 +487,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mChunkVertices.push_back(Vertex{
             fVec3{x + offsets[3].x,
@@ -483,7 +496,8 @@ void Chunk::AddFace(int x, int y, int z, glm::ivec3 direction, int8_t blockType)
                   z + offsets[3].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
                     static_cast<uint16_t>(uvCoords[3].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
     }
 }

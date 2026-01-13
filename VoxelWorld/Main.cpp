@@ -15,26 +15,31 @@
 #include <iostream>
 
 #include "Core/Utils/Defs.h"
+#include "OpenGL/FrameData.h"
+#include "OpenGL/FrameUboOpenGL.h"
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
-void processInput(GLFWwindow* window);
+static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
+static void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+static void processInput(GLFWwindow* window);
 
-float lastX = DEFAULT_WINDOW_X * 0.5f;
-float lastY = DEFAULT_WINDOW_Y * 0.5f;
-bool firstMouse = true;
+static float lastX = DEFAULT_WINDOW_X * 0.5f;
+static float lastY = DEFAULT_WINDOW_Y * 0.5f;
+static bool firstMouse = true;
 
 // create the camera
-Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
+static Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
 
-float deltaTime = 0.0f;
-float lastFrame = 0.0f;
-int frameCount = 0;
-std::chrono::time_point<std::chrono::system_clock> lastTime = std::chrono::system_clock::now();
+static FrameData frameData = FrameData();
+static FrameUboOpenGL frameUBO;
+
+static float deltaTime = 0.0f;
+static float lastFrame = 0.0f;
+static int frameCount = 0;
+static std::chrono::time_point<std::chrono::system_clock> lastTime = std::chrono::system_clock::now();
 
 
-void calculateFPS(GLFWwindow* window) {
+static void calculateFPS(GLFWwindow* window) {
     auto currentTime = std::chrono::system_clock::now();
 
     frameCount++;
@@ -82,7 +87,9 @@ int main() {
     // create the chunkHandler and the skybox -> don't need to be a pointer ?
     ChunkHandler* chunkHandler = new ChunkHandler(16, camera, 12345);
     Sky* skybox = new Sky(camera, camera->GetPosition());
-
+    frameUBO = FrameUboOpenGL();
+    frameUBO.Initialize();
+    
     while (!glfwWindowShouldClose(window)) {
 
         float currentFrame = static_cast<float>(glfwGetTime());
@@ -102,6 +109,22 @@ int main() {
 
         // draw skybox first
         skybox->Draw();
+        frameData.cameraPos = glm::vec4(camera->Position, 1.0);
+        //std::cout << "x : " << frameData.cameraPos.x << " - y : " << frameData.cameraPos.y << std::endl;
+        frameData.time = glm::vec4(static_cast<float>(glfwGetTime()));
+        frameData.screenWidth = glm::vec4(camera->GetCameraSize().x);
+        frameData.screenHeight = glm::vec4(camera->GetCameraSize().y);
+        
+        float angle = frameData.time.x * 2.0f;
+        float radius = 1.0f;
+        glm::vec3 dir;
+        dir.x = cos(angle) * radius;
+        dir.y = sin(angle) * radius;
+        dir.z = 1.0f;
+
+        frameData.skyLightDirection = glm::vec4(glm::normalize(dir), 0.0f);
+
+        frameUBO.UpdateData(frameData);
         chunkHandler->DrawChunks();
 
         //swap buffers

@@ -35,4 +35,5 @@ struct Vertex
 	fVec3 position;
 	i16Vec2 texture_coords;
 	int TexIndex;
+	glm::vec3 normal;
 };

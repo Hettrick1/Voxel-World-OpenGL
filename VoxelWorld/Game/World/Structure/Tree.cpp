@@ -48,7 +48,7 @@ Tree::Tree(glm::vec3 initialPos, float blockSize, float textureWidth, float heig
 
                     glm::ivec3 directions[6] = {
                         {1, 0, 0}, {-1, 0, 0},  // Droite, Gauche
-                        {0, 1, 0}, {0, -1, 0},  // Avant, Arrière
+                        {0, 1, 0}, {0, -1, 0},  // Avant, Arriere
                         {0, 0, 1}, {0, 0, -1}   // Haut, Bas
                     };
 
@@ -97,7 +97,7 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
     switch (faceIndex)
     {
     case 0:
-        blockIndex = static_cast<int>(Block::OakLogShadow);
+        blockIndex = static_cast<int>(Block::OakLog);
         break;
     case 1:
         blockIndex = static_cast<int>(Block::OakLog);
@@ -106,7 +106,7 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
         blockIndex = static_cast<int>(Block::OakLog);
         break;
     case 3:
-        blockIndex = static_cast<int>(Block::OakLogShadow);
+        blockIndex = static_cast<int>(Block::OakLog);
         break;
     case 4:
         blockIndex = static_cast<int>(Block::OakLogTop);
@@ -136,7 +136,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLogVertices.push_back(Vertex{
             fVec3{x + offsets[1].x,
@@ -144,7 +145,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[1].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                     static_cast<uint16_t>(uvCoords[1].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLogVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -152,7 +154,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLogVertices.push_back(Vertex{
             fVec3{x + offsets[0].x,
@@ -160,7 +163,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLogVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -168,7 +172,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLogVertices.push_back(Vertex{
             fVec3{x + offsets[3].x,
@@ -176,7 +181,8 @@ void Tree::AddLogFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[3].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
                     static_cast<uint16_t>(uvCoords[3].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
     }
 }
@@ -211,7 +217,7 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
     switch (faceIndex)
     {
     case 0:
-        blockIndex = static_cast<int>(Block::OakLeavesShadow);
+        blockIndex = static_cast<int>(Block::OakLeaves);
         break;
     case 1:
         blockIndex = static_cast<int>(Block::OakLeaves);
@@ -220,7 +226,7 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
         blockIndex = static_cast<int>(Block::OakLeaves);
         break;
     case 3:
-        blockIndex = static_cast<int>(Block::OakLeavesShadow);
+        blockIndex = static_cast<int>(Block::OakLeaves);
         break;
     case 4:
         blockIndex = static_cast<int>(Block::OakLeaves);
@@ -253,7 +259,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLeavesVertices.push_back(Vertex{
             fVec3{x + offsets[1].x,
@@ -261,7 +268,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[1].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[1].x * 65535),
                     static_cast<uint16_t>(uvCoords[1].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLeavesVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -269,7 +277,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLeavesVertices.push_back(Vertex{
             fVec3{x + offsets[0].x,
@@ -277,7 +286,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[0].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[0].x * 65535),
                     static_cast<uint16_t>(uvCoords[0].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLeavesVertices.push_back(Vertex{
             fVec3{x + offsets[2].x,
@@ -285,7 +295,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[2].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[2].x * 65535),
                     static_cast<uint16_t>(uvCoords[2].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
         mTreeLeavesVertices.push_back(Vertex{
             fVec3{x + offsets[3].x,
@@ -293,7 +304,8 @@ void Tree::AddLeavesFace(int x, int y, int z, glm::ivec3 direction)
                   z + offsets[3].z},
             i16Vec2{static_cast<uint16_t>(uvCoords[3].x * 65535),
                     static_cast<uint16_t>(uvCoords[3].y * 65535)},
-                    blockIndex
+                    blockIndex,
+            direction
             });
     }
 }
