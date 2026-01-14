@@ -12,9 +12,6 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
     mBlockSize = texHeight;
     mTextureWidth = texWidth;
 
-    mBlockShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
-    mFolliageShader = new Shader("Core/Shaders/folliageShader.vs", "Core/Shaders/folliageShader.fs");
-
     heightMap.SetSeed(seed);
     heightMap.SetNoiseType(FastNoiseLite::NoiseType_Perlin);
     biome.SetSeed(seed);
@@ -112,8 +109,6 @@ Chunk::Chunk(Camera* cam, glm::vec3 pos, int seed, GLuint& texture, float& texWi
 
 Chunk::~Chunk()
 {
-    delete mBlockShader;
-    delete mFolliageShader;
     transparentVbo.~VertexBuffer();
     vbo.~VertexBuffer();
     vao.~VertexArray();
@@ -514,21 +509,17 @@ void Chunk::SetPosition(glm::vec3 newPos)
     mPosition.z = 0;
 }
 
-void Chunk::DrawChunkMesh()
+void Chunk::DrawChunkMesh(Shader& shader)
 { 
     if (mChunkVertices.size() > 0) {
         // Use shader and send all the matrices
-        mBlockShader->Use();
-
-        glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_2D, mTexture);
-
         glm::mat4 model = glm::translate(glm::mat4(1.0f), mPosition); 
         glm::mat4 view = mCamera->GetViewMatrix(); 
         glm::mat4 projection = mCamera->GetProjectionMatrix(); 
         glm::mat4 mvp = projection * view * model; 
 
-        mBlockShader->SetMat4("u_MVP", mvp);
+        shader.SetMat4("model", model);
+        shader.SetMat4("u_MVP", mvp);
         // Draw the chunk
         vao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mChunkVertices.size()));
@@ -536,11 +527,11 @@ void Chunk::DrawChunkMesh()
     }
 }
 
-void Chunk::DrawFolliageMesh()
+void Chunk::DrawFolliageMesh(Shader& shader)
 {
     if (mFolliageVertices.size() > 0) {
 
-        mFolliageShader->Use();
+        shader.Use();
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, mTexture);
@@ -550,7 +541,7 @@ void Chunk::DrawFolliageMesh()
         glm::mat4 projection = mCamera->GetProjectionMatrix();
         glm::mat4 mvp = projection * view * model;
 
-        mFolliageShader->SetMat4("u_MVP", mvp);
+        shader.SetMat4("u_MVP", mvp);
         transparentVao.Bind();
         glDrawArrays(GL_TRIANGLES, 0, static_cast<GLsizei>(mFolliageVertices.size()));
         transparentVao.Unbind();

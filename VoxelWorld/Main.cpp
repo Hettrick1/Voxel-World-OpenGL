@@ -15,8 +15,6 @@
 #include <iostream>
 
 #include "Core/Utils/Defs.h"
-#include "OpenGL/FrameData.h"
-#include "OpenGL/FrameUboOpenGL.h"
 
 static void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 static void mouse_callback(GLFWwindow* window, double xposIn, double yposIn);
@@ -29,9 +27,6 @@ static bool firstMouse = true;
 
 // create the camera
 static Camera* camera = new Camera(glm::vec3(0.0f, 0.0f, 100.0f));
-
-static FrameData frameData = FrameData();
-static FrameUboOpenGL frameUBO;
 
 static float deltaTime = 0.0f;
 static float lastFrame = 0.0f;
@@ -79,7 +74,6 @@ int main() {
     }  
 
     //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //Wireframe Mode
-    glEnable(GL_DEPTH_TEST);
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
@@ -87,8 +81,8 @@ int main() {
     // create the chunkHandler and the skybox -> don't need to be a pointer ?
     ChunkHandler* chunkHandler = new ChunkHandler(16, camera, 12345);
     Sky* skybox = new Sky(camera, camera->GetPosition());
-    frameUBO = FrameUboOpenGL();
-    frameUBO.Initialize();
+
+    camera->SetCameraSize(DEFAULT_WINDOW_X, DEFAULT_WINDOW_Y);
     
     while (!glfwWindowShouldClose(window)) {
 
@@ -109,23 +103,8 @@ int main() {
 
         // draw skybox first
         skybox->Draw();
-        frameData.cameraPos = glm::vec4(camera->Position, 1.0);
-        //std::cout << "x : " << frameData.cameraPos.x << " - y : " << frameData.cameraPos.y << std::endl;
-        frameData.time = glm::vec4(static_cast<float>(glfwGetTime()));
-        frameData.screenWidth = glm::vec4(camera->GetCameraSize().x);
-        frameData.screenHeight = glm::vec4(camera->GetCameraSize().y);
         
-        float angle = frameData.time.x * 2.0f;
-        float radius = 1.0f;
-        glm::vec3 dir;
-        dir.x = cos(angle) * radius;
-        dir.y = sin(angle) * radius;
-        dir.z = 1.0f;
-
-        frameData.skyLightDirection = glm::vec4(glm::normalize(dir), 0.0f);
-
-        frameUBO.UpdateData(frameData);
-        chunkHandler->DrawChunks();
+        chunkHandler->Draw();
 
         //swap buffers
         glfwSwapBuffers(window);

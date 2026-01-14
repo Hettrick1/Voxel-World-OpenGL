@@ -12,9 +12,9 @@ struct FrameData
     fogStart(200.0f),
     fogEnd(1000.0f),
     fogColor(glm::vec4(0.5647f, 0.8352f, 1.0f, 1.0f)),
-    skyLightColor(glm::vec4(0.8f, 1.0f, 1.0f, 0.0f)),
-    skyLightIntensity(glm::vec4(0.3f)),
-    skyLightDirection(glm::vec4(-1.0f, -1.0f, 1.0f, 1.0f))
+    skyLightColor(glm::vec4(1.0f, 1.0f, 0.8f, 0.0f)),
+    skyLightIntensity(glm::vec4(4.0f)),
+    skyLightDirection(glm::vec4(0.0f, -0.2f, -0.8f, 1.0f))
     {
         
     }

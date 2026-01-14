@@ -70,15 +70,63 @@ ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 
     glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
 
+    mBlockShader = new Shader("Core/Shaders/shader.vs", "Core/Shaders/shader.fs");
+    mFolliageShader = new Shader("Core/Shaders/folliageShader.vs", "Core/Shaders/folliageShader.fs");
+    mShadowMapShader = new Shader("Core/Shaders/shadowMap.vs", "Core/Shaders/shadowMap.fs");
+
+    frameUBO = FrameUboOpenGL();
+    frameUBO.Initialize();
+
+    InitShadowPass();
 	GenerateAllChunks();
 }
 
 ChunkHandler::~ChunkHandler()
 {
+    delete mBlockShader;
+    delete mFolliageShader;
+    delete mShadowMapShader;
     for (auto& pair : mActiveChunks) delete pair.second;
     for (auto& pair : mUnactiveChunks) delete pair.second;
     mActiveChunks.clear();
     mUnactiveChunks.clear();
+}
+
+void ChunkHandler::InitShadowPass()
+{
+    glGenFramebuffers(1, &mShadowMapFBO);
+
+    glGenTextures(1, &mShadowMapTexture);
+    glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, mShadowMapResolution.x, mShadowMapResolution.y, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+    float clampColor[] = {1.0f, 1.0f, 1.0f, 1.0f};
+    glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mShadowMapTexture, 0);
+    glDrawBuffer(GL_NONE);
+    glReadBuffer(GL_NONE);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        std::cerr << "Shadow FBO incomplete!" << std::endl;
+    }
+
+    mShadowProjectionMatrix = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, 0.1f, 100.0f);
+    glm::vec3 dir =  glm::normalize(glm::vec3(frameData.skyLightDirection.x, frameData.skyLightDirection.y, frameData.skyLightDirection.z));
+    glm::vec3 center = glm::vec3(mCamera->GetPosition().x,mCamera->GetPosition().y,100.0f);
+    glm::vec3 lightPos = center - dir * 20.0f;
+
+    glm::vec3 up = (abs(dir.z) < 0.999f) ? glm::vec3(0, 0, 1) : glm::vec3(0, 1, 0);
+    
+    mLightViewMatrix = glm::lookAt(center, dir, up);
+    
+    mLightProjMatrix = mShadowProjectionMatrix * mLightViewMatrix;
 }
 
 void ChunkHandler::GenerateAllChunks()
@@ -103,7 +151,18 @@ void ChunkHandler::UpdateChunks()
 {
     glm::vec3 cameraPos = mCamera->GetPosition(); 
     glm::vec3 cameraRot = mCamera->GetForwardVector(); 
-    glm::vec2 viewportSize = mCamera->GetCameraSize(); 
+    glm::vec2 viewportSize = mCamera->GetCameraSize();
+
+    mShadowProjectionMatrix = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 0.1f, 200.0f);
+    glm::vec3 dir =  glm::normalize(glm::vec3(frameData.skyLightDirection.x, frameData.skyLightDirection.y, frameData.skyLightDirection.z));
+    glm::vec3 center = glm::vec3(mCamera->GetPosition().x,mCamera->GetPosition().y,0.0f);
+    glm::vec3 lightPos = center - dir * 100.0f;
+
+    mLightViewMatrix = glm::lookAt(lightPos, 
+                              lightPos + dir, 
+                              glm::vec3( 0.0f, 0.0f,  1.0f));
+    
+    mLightProjMatrix = mShadowProjectionMatrix * mLightViewMatrix;
 
     // where is the camera in chunk coordinates
     int cameraChunkX = static_cast<int>(std::floor(cameraPos.x * 0.0625f));// divide by 16
@@ -138,16 +197,65 @@ void ChunkHandler::UpdateChunks()
         }
     }
     // Delete old chunks
-    RemoveOldChunk(cameraChunkX, cameraChunkY); 
+    RemoveOldChunk(cameraChunkX, cameraChunkY);
 }
 
-void ChunkHandler::DrawChunks()
+void ChunkHandler::Draw()
 {
-    // glEnable(GL_BLEND);
-    // glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    frameData.cameraPos = glm::vec4(mCamera->Position, 1.0);
+    frameData.time = glm::vec4(static_cast<float>(glfwGetTime()));
+    frameData.screenWidth = glm::vec4(mCamera->GetCameraSize().x);
+    frameData.screenHeight = glm::vec4(mCamera->GetCameraSize().y);
+        
+    float angle = frameData.time.x * 0.3f;
+    float radius = 1.0f;
+    glm::vec3 dir;
+    dir.x = 0.0;
+    dir.y = cos(angle);
+    dir.z = sin(angle);
+
+    frameData.skyLightDirection = glm::vec4(glm::normalize(dir), 0.0f);
+    frameUBO.UpdateData(frameData);
+    
+    ShadowPass();
+    LightPass();
+}
+
+void ChunkHandler::ShadowPass()
+{
+    glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, mShadowMapResolution.x, mShadowMapResolution.y);
+    glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+    mShadowMapShader->Use();
+    mShadowMapShader->SetMat4("lightProjection", mLightProjMatrix);
+
+    for (auto& pair : mActiveChunks)
+    {
+        pair.second->DrawChunkMesh(*mShadowMapShader);
+    }
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glDisable(GL_DEPTH_TEST);
+}
+
+void ChunkHandler::LightPass()
+{
+    glEnable(GL_DEPTH_TEST);
+    glViewport(0, 0, mCamera->GetCameraSize().x, mCamera->GetCameraSize().y);
     for (auto& pair : mActiveChunks) {
         if (IsChunkInFrustum(pair.second->GetPosition())) {
-            pair.second->DrawChunkMesh();
+            mBlockShader->Use();
+            mBlockShader->SetMat4("lightProjection", mLightProjMatrix);
+            
+            glActiveTexture(GL_TEXTURE0);
+            glBindTexture(GL_TEXTURE_2D, mTextureArray);
+
+            glActiveTexture(GL_TEXTURE0 + 2);
+            glBindTexture(GL_TEXTURE_2D, mShadowMapTexture);
+            glUniform1i(glGetUniformLocation(mBlockShader->ID, "shadowMap"), 2);
+            
+            pair.second->DrawChunkMesh(*mBlockShader);
         }
         // Get the chunk position
         glm::vec3 chunkPos = pair.second->GetPosition();
@@ -159,9 +267,10 @@ void ChunkHandler::DrawChunks()
 
         // This is the folliage render distance, if the distance between the chunk and the camera is smaller than 8 we draw the folliage
         if (distance < 8 && IsChunkInFrustum(chunkPos)) {
-            pair.second->DrawFolliageMesh();
+            pair.second->DrawFolliageMesh(*mFolliageShader);
         }
     }
+    glDisable(GL_DEPTH_TEST);
 }
 
 bool ChunkHandler::IsChunkInFrustum(const glm::vec3& chunkPosition)

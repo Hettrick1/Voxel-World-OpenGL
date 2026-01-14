@@ -7,9 +7,13 @@ out vec4 FragColor;
 in vec3 vWorldPos;
 in vec2 TexCoord;
 in vec3 Normal;
+
+in vec4 fragPositionLight;
+
 flat in int TexIndex;
 
 uniform sampler2DArray textureArray;
+uniform sampler2D shadowMap;
 
 layout(std140, binding = 0) uniform FrameData
 {
@@ -45,17 +49,36 @@ void main()
     // mix texture avec fogColor
 
     vec3 N = normalize(Normal);
-    vec3 L = normalize(uSkyLightDirection.xyz);
+    vec3 L = normalize(-uSkyLightDirection.xyz);
 
-    vec3 ambient = newBaseColor;
-    float diff = max(dot(N, L), 0.0);
-    vec3 diffuse = newBaseColor * uSkyLightColor.xyz * diff * uSkyLightIntensity.x;
+    vec3 ambient = uSkyLightColor.xyz * 0.5;
+    float diff = max(dot(L, N), 0.0);
+    vec3 diffuse = uSkyLightColor.xyz * diff;
 
+    float shadow = 0.0f;
+    vec3 lightCoords = fragPositionLight.xyz / fragPositionLight.w;
+    if (lightCoords.z <= 1.0f)
+    {
+        lightCoords = lightCoords * 0.5 +0.5;
+
+        float closestDepth = texture(shadowMap, lightCoords.xy).r;
+        float currentDepth = lightCoords.z;
+        
+        float bias = max(0.05 * (1.0 - dot(N, L)), 0.005);  
+
+        if (currentDepth - bias > closestDepth)
+        {
+            shadow = 1.0f;
+        }
+    }
+
+    
     // total lighting
-    vec3 litColor = ambient + diffuse;
+    vec3 litColor = (ambient + (1.0 - shadow) * diffuse) * newBaseColor;
 
     // fog
     vec3 finalColor = mix(litColor, uFogColor.xyz, fogFactor);
 
+    //FragColor = vec4(vec3(texture(shadowMap, TexCoord).r), 1.0);
     FragColor = vec4(finalColor, 1.0);
 }
