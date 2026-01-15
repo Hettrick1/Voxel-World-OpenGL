@@ -38,20 +38,16 @@ void main()
     vec4 baseColor = texture(textureArray, vec3(TexCoord, TexIndex)); // set texture
     if(baseColor.a < 0.2) discard;
 
+    float dist = length(vWorldPos - uCameraPos.xyz);
     vec3 newBaseColor = baseColor.rgb;
 
-    // distance caméra -> fragment
-    float dist = length(vWorldPos - uCameraPos.xyz);
-
-    // fog factor linéaire : 0 = avant fogStart, 1 = après fogEnd
     float fogFactor = clamp((dist - uFogStart.x) / (uFogEnd.x - uFogStart.x), 0.0, 1.0);
     //float fogFactor = 1.0;
-    // mix texture avec fogColor
 
     vec3 N = normalize(Normal);
     vec3 L = normalize(-uSkyLightDirection.xyz);
 
-    vec3 ambient = uSkyLightColor.xyz * 0.5;
+    vec3 ambient = uSkyLightColor.xyz * 0.4;
     float diff = max(dot(L, N), 0.0);
     vec3 diffuse = uSkyLightColor.xyz * diff;
 
@@ -72,13 +68,12 @@ void main()
         }
     }
 
-    
     // total lighting
     vec3 litColor = (ambient + (1.0 - shadow) * diffuse) * newBaseColor;
 
     // fog
     vec3 finalColor = mix(litColor, uFogColor.xyz, fogFactor);
 
-    //FragColor = vec4(vec3(texture(shadowMap, TexCoord).r), 1.0);
+    FragColor = vec4(vec3(texture(shadowMap, TexCoord).r), 1.0);
     FragColor = vec4(finalColor, 1.0);
 }

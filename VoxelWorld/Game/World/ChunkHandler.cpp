@@ -1,7 +1,6 @@
 #include "ChunkHandler.h"
 
 #include <unordered_set>
-#include <algorithm>
 
 ChunkHandler::ChunkHandler(int renderDistance, Camera* cam, int seed)
 {
@@ -153,17 +152,6 @@ void ChunkHandler::UpdateChunks()
     glm::vec3 cameraRot = mCamera->GetForwardVector(); 
     glm::vec2 viewportSize = mCamera->GetCameraSize();
 
-    mShadowProjectionMatrix = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, 0.1f, 200.0f);
-    glm::vec3 dir =  glm::normalize(glm::vec3(frameData.skyLightDirection.x, frameData.skyLightDirection.y, frameData.skyLightDirection.z));
-    glm::vec3 center = glm::vec3(mCamera->GetPosition().x,mCamera->GetPosition().y,0.0f);
-    glm::vec3 lightPos = center - dir * 100.0f;
-
-    mLightViewMatrix = glm::lookAt(lightPos, 
-                              lightPos + dir, 
-                              glm::vec3( 0.0f, 0.0f,  1.0f));
-    
-    mLightProjMatrix = mShadowProjectionMatrix * mLightViewMatrix;
-
     // where is the camera in chunk coordinates
     int cameraChunkX = static_cast<int>(std::floor(cameraPos.x * 0.0625f));// divide by 16
     int cameraChunkY = static_cast<int>(std::floor(cameraPos.y * 0.0625f));// divide by 16
@@ -206,15 +194,35 @@ void ChunkHandler::Draw()
     frameData.time = glm::vec4(static_cast<float>(glfwGetTime()));
     frameData.screenWidth = glm::vec4(mCamera->GetCameraSize().x);
     frameData.screenHeight = glm::vec4(mCamera->GetCameraSize().y);
+    
+    glm::vec3 dir =  glm::normalize(glm::vec3(frameData.skyLightDirection.x, frameData.skyLightDirection.y, frameData.skyLightDirection.z));
+
+    float size = 300.0f;
+    glm::vec3 lightDir = glm::normalize(glm::vec3(frameData.skyLightDirection));
+    
+    glm::mat4 vMatrix = glm::lookAt(-lightDir, glm::vec3(0.0f), glm::vec3(0, 0, 1));
+    
+    glm::vec4 shadowCenter = vMatrix * glm::vec4(mCamera->GetPosition(), 1.0f);
+    
+    float worldUnitsPerTexel = (size * 2.0f) / static_cast<float>(mShadowMapResolution.x);
+    shadowCenter.x = floor(shadowCenter.x / worldUnitsPerTexel) * worldUnitsPerTexel;
+    shadowCenter.y = floor(shadowCenter.y / worldUnitsPerTexel) * worldUnitsPerTexel;
+    
+    mShadowProjectionMatrix = glm::ortho(shadowCenter.x - size, shadowCenter.x + size, 
+                                         shadowCenter.y - size, shadowCenter.y + size, 
+                                         -500.0f, 500.0f);
+                                         
+    mLightProjMatrix = mShadowProjectionMatrix * vMatrix;
+    
         
     float angle = frameData.time.x * 0.3f;
     float radius = 1.0f;
-    glm::vec3 dir;
+    glm::vec3 Lightdir;
     dir.x = 0.0;
     dir.y = cos(angle);
     dir.z = sin(angle);
 
-    frameData.skyLightDirection = glm::vec4(glm::normalize(dir), 0.0f);
+    //frameData.skyLightDirection = glm::vec4(glm::normalize(dir), 0.0f);
     frameUBO.UpdateData(frameData);
     
     ShadowPass();
@@ -224,6 +232,7 @@ void ChunkHandler::Draw()
 void ChunkHandler::ShadowPass()
 {
     glEnable(GL_DEPTH_TEST);
+    glCullFace(GL_FRONT);
     glViewport(0, 0, mShadowMapResolution.x, mShadowMapResolution.y);
     glBindFramebuffer(GL_FRAMEBUFFER, mShadowMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
@@ -237,6 +246,7 @@ void ChunkHandler::ShadowPass()
     
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glDisable(GL_DEPTH_TEST);
+    glCullFace(GL_FRONT_AND_BACK);
 }
 
 void ChunkHandler::LightPass()
